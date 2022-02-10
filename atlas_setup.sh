@@ -43,14 +43,14 @@ fi
 EOT
 )
 
-    ed "$(readlink -f ${_venv_name}/bin/activate)" <<EOF
+    ed --silent "$(readlink -f ${_venv_name}/bin/activate)" <<EOF
 16i
 $_SET_PYTHONPATH
 .
 wq
 EOF
 
-    ed "$(readlink -f ${_venv_name}/bin/activate)" <<EOF
+    ed --silent "$(readlink -f ${_venv_name}/bin/activate)" <<EOF
 60i
 $_RECOVER_OLD_PYTHONPATH
 .
