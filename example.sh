@@ -1,4 +1,4 @@
-new=$(cat <<-EOT
+_SET_PYTHONPATH=$(cat <<-EOT
     # Added by https://github.com/matthewfeickert/cvmfs-venv
     if [ -n "\${_OLD_VIRTUAL_PYTHONPATH:-}" ] ; then
         PYTHONPATH="\${_OLD_VIRTUAL_PYTHONPATH:-}"
@@ -8,7 +8,7 @@ new=$(cat <<-EOT
 EOT
 )
 
-_back=$(cat <<-EOT
+_RECOVER_OLD_PYTHONPATH=$(cat <<-EOT
 # Added by https://github.com/matthewfeickert/cvmfs-venv
 if [ -n "\${PYTHONPATH:-}" ] ; then
     _OLD_VIRTUAL_PYTHONPATH="\${PYTHONPATH:-}"
@@ -21,16 +21,19 @@ EOT
 cp _activate_empty.sh out.sh
 ed out.sh <<EOF
 16i
-$new
+$_SET_PYTHONPATH
 .
 wq
 EOF
 
 ed out.sh <<EOF
 60i
-$_back
+$_RECOVER_OLD_PYTHONPATH
 .
 wq
 EOF
 
 cat out.sh
+
+unset _SET_PYTHONPATH
+unset _RECOVER_OLD_PYTHONPATH
