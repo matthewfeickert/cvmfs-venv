@@ -19,7 +19,7 @@ lsetup "views ${default_LCG_release} ${default_LCG_platform}"
 
 _venv_name="${1:-venv}"
 if [ ! -d "${_venv_name}" ]; then
-    printf "# Creating new Python virtual environment ${_venv_name}\n"
+    printf "# Creating new Python virtual environment '${_venv_name}'\n"
     python3 -m venv "${_venv_name}"
 
     # Do manipulation of activate script
@@ -68,7 +68,8 @@ fi
 . "${_venv_name}/bin/activate"
 
 # Get latest pip, setuptools, wheel
-python -m pip --quiet install --upgrade pip setuptools wheel
+# Hide not-real errors from CVMFS by sending to /dev/null
+python -m pip --quiet install --upgrade pip setuptools wheel &> /dev/null
 
 # Place venv's site-packages on PYTHONPATH to allow venv control of pip
 #export PYTHONPATH="$(find $(dirname $(command -v python))/../ -type d -name site-packages):${PYTHONPATH}"
