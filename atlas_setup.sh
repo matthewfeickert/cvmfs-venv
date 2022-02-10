@@ -67,6 +67,9 @@ unset _RECOVER_OLD_PYTHONPATH_LINE
 fi
 . "${_venv_name}/bin/activate"
 
+# Get latest pip, setuptools, wheel
+python -m pip --quiet install --upgrade pip setuptools wheel
+
 # Place venv's site-packages on PYTHONPATH to allow venv control of pip
 #export PYTHONPATH="$(find $(dirname $(command -v python))/../ -type d -name site-packages):${PYTHONPATH}"
 unset _venv_name
