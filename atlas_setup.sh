@@ -41,6 +41,7 @@ if [ -n "\${PYTHONPATH:-}" ] ; then
     export PYTHONPATH="\$(find \${VIRTUAL_ENV}/lib/ -type d -name site-packages):\${_OLD_VIRTUAL_PYTHONPATH}"
 fi
 EOT
+)
 
     ed "$(readlink -f ${_venv_name}/bin/activate)" <<EOF
 16i
@@ -48,7 +49,6 @@ $_SET_PYTHONPATH
 .
 wq
 EOF
-)
 
     ed "$(readlink -f ${_venv_name}/bin/activate)" <<EOF
 60i
