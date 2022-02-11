@@ -14,6 +14,11 @@ fi
 # Setup default LCG view
 default_LCG_release="LCG_98python3"
 default_LCG_platform="x86_64-centos7-gcc8-opt"
+# Check if on a CentOS 8 machine
+if [ "$(python3 -c 'import platform; print(platform.linux_distribution()[0])')" == 'CentOS Stream' ]; then
+    default_LCG_release="LCG_100"
+    default_LCG_platform="x86_64-centos8-gcc10-opt"
+fi
 printf "\nlsetup 'views ${default_LCG_release} ${default_LCG_platform}'\n"
 lsetup "views ${default_LCG_release} ${default_LCG_platform}"
 
