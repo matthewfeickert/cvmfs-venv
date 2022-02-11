@@ -19,12 +19,12 @@ if [ "$(python3 -c 'import platform; print(platform.linux_distribution()[0])')" 
     default_LCG_release="LCG_100"
     default_LCG_platform="x86_64-centos8-gcc10-opt"
 fi
-printf "\nlsetup 'views ${default_LCG_release} ${default_LCG_platform}'\n"
+printf "\nlsetup 'views %s %s'\n" "${default_LCG_release}" "${default_LCG_platform}"
 lsetup "views ${default_LCG_release} ${default_LCG_platform}"
 
 _venv_name="${1:-venv}"
 if [ ! -d "${_venv_name}" ]; then
-    printf "# Creating new Python virtual environment '${_venv_name}'\n"
+    printf "# Creating new Python virtual environment '%s'\n" "${_venv_name}"
     python3 -m venv "${_venv_name}"
 
     # Do manipulation of activate script
