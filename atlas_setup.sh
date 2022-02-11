@@ -19,8 +19,14 @@ if [ "$(python3 -c 'from platform import platform; print("centos-8" in platform(
     default_LCG_release="LCG_100"
     default_LCG_platform="x86_64-centos8-gcc10-opt"
 fi
-printf "\nlsetup 'views %s %s'\n" "${default_LCG_release}" "${default_LCG_platform}"
-lsetup "views ${default_LCG_release} ${default_LCG_platform}"
+# printf "\nlsetup 'views %s %s'\n" "${default_LCG_release}" "${default_LCG_platform}"
+# lsetup "views ${default_LCG_release} ${default_LCG_platform}"
+
+# _ATLAS_RELEASE="21.2.203"
+_ATLAS_RELEASE="22.2.61"
+printf "\nasetup %s,AnalysisBase\n" "${_ATLAS_RELEASE}"
+asetup "${_ATLAS_RELEASE},AnalysisBase"
+unset _ATLAS_RELEASE
 
 _venv_name="${1:-venv}"
 if [ ! -d "${_venv_name}" ]; then
