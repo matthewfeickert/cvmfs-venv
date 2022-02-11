@@ -15,7 +15,7 @@ fi
 default_LCG_release="LCG_98python3"
 default_LCG_platform="x86_64-centos7-gcc8-opt"
 # Check if on a CentOS 8 machine
-if [ "$(python3 -c 'import platform; print(platform.linux_distribution()[0])')" == 'CentOS Stream' ]; then
+if [ "$(python3 -c 'from platform import platform; print("centos-8" in platform())')" == "True" ]; then
     default_LCG_release="LCG_100"
     default_LCG_platform="x86_64-centos8-gcc10-opt"
 fi
