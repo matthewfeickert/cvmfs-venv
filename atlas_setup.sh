@@ -76,6 +76,4 @@ fi
 # Hide not-real errors from CVMFS by sending to /dev/null
 python -m pip --quiet install --upgrade pip setuptools wheel &> /dev/null
 
-# Place venv's site-packages on PYTHONPATH to allow venv control of pip
-#export PYTHONPATH="$(find $(dirname $(command -v python))/../ -type d -name site-packages):${PYTHONPATH}"
 unset _venv_name
