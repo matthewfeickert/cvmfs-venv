@@ -48,16 +48,16 @@ fi
 EOT
 )
 
-    _SET_PYTHONPATH_INSERT_LINE="$(($(sed -n '\|unset _OLD_VIRTUAL_PYTHONHOME|=' ${_venv_name}/bin/activate) + 2))"
-    ed --silent "$(readlink -f ${_venv_name}/bin/activate)" <<EOF
+    _SET_PYTHONPATH_INSERT_LINE="$(($(sed -n '\|unset _OLD_VIRTUAL_PYTHONHOME|=' "${_venv_name}"/bin/activate) + 2))"
+    ed --silent "$(readlink -f "${_venv_name}"/bin/activate)" <<EOF
 ${_SET_PYTHONPATH_INSERT_LINE}i
 ${_SET_PYTHONPATH}
 .
 wq
 EOF
 
-    _RECOVER_OLD_PYTHONPATH_LINE="$(($(sed -n '\|    unset PYTHONHOME|=' ${_venv_name}/bin/activate) + 2))"
-    ed --silent "$(readlink -f ${_venv_name}/bin/activate)" <<EOF
+    _RECOVER_OLD_PYTHONPATH_LINE="$(($(sed -n '\|    unset PYTHONHOME|=' "${_venv_name}"/bin/activate) + 2))"
+    ed --silent "$(readlink -f "${_venv_name}"/bin/activate)" <<EOF
 ${_RECOVER_OLD_PYTHONPATH_LINE}i
 ${_RECOVER_OLD_PYTHONPATH}
 .
