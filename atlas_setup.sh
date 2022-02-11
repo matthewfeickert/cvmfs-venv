@@ -27,18 +27,12 @@ if [ ! -d "${_venv_name}" ]; then
     printf "# Creating new Python virtual environment '%s'\n" "${_venv_name}"
     python3 -m venv "${_venv_name}"
 
-    # Do manipulation of activate script
+    # When setting up the Python virtual environment shell variables in the
+    # main section of the <venv>/bin/activate script, copy the pattern used
+    # for PYTHONHOME to also place the <venv>'s site-packages at the front
+    # of PYTHONPATH so that they are ahead of the LCG view's packages in
+    # priority.
     _SET_PYTHONPATH=$(cat <<-EOT
-    # Added by https://github.com/matthewfeickert/cvmfs-venv
-    if [ -n "\${_OLD_VIRTUAL_PYTHONPATH:-}" ] ; then
-        PYTHONPATH="\${_OLD_VIRTUAL_PYTHONPATH:-}"
-        export PYTHONPATH
-        unset _OLD_VIRTUAL_PYTHONPATH
-    fi
-EOT
-)
-
-    _RECOVER_OLD_PYTHONPATH=$(cat <<-EOT
 # Added by https://github.com/matthewfeickert/cvmfs-venv
 if [ -n "\${PYTHONPATH:-}" ] ; then
     _OLD_VIRTUAL_PYTHONPATH="\${PYTHONPATH:-}"
@@ -48,7 +42,25 @@ fi
 EOT
 )
 
-    _SET_PYTHONPATH_INSERT_LINE="$(($(sed -n '\|unset _OLD_VIRTUAL_PYTHONHOME|=' "${_venv_name}"/bin/activate) + 2))"
+    # When deactivate is being run, reset the PYTHONPATH to what is was before
+    # activation of the Python virtual environment. This ensures that the <venv>'s
+    # site-packages are removed from PYTHONPATH so there is no collision if
+    # attempting to use a different virtual environment or if attempting to use
+    # the LCG view's packages.
+    _RECOVER_OLD_PYTHONPATH=$(cat <<-EOT
+    # Added by https://github.com/matthewfeickert/cvmfs-venv
+    if [ -n "\${_OLD_VIRTUAL_PYTHONPATH:-}" ] ; then
+        PYTHONPATH="\${_OLD_VIRTUAL_PYTHONPATH:-}"
+        export PYTHONPATH
+        unset _OLD_VIRTUAL_PYTHONPATH
+    fi
+EOT
+)
+
+    # Find the line number of the last line in the PYTHONHOME set if statement
+    # block and inject the PYTHONPATH if statement block directly after it
+    # (2 lines later).
+    _RECOVER_OLD_PYTHONPATH_LINE="$(($(sed -n '\|unset _OLD_VIRTUAL_PYTHONHOME|=' "${_venv_name}"/bin/activate) + 2))"
     ed --silent "$(readlink -f "${_venv_name}"/bin/activate)" <<EOF
 ${_SET_PYTHONPATH_INSERT_LINE}i
 ${_SET_PYTHONPATH}
@@ -56,7 +68,10 @@ ${_SET_PYTHONPATH}
 wq
 EOF
 
-    _RECOVER_OLD_PYTHONPATH_LINE="$(($(sed -n '\|    unset PYTHONHOME|=' "${_venv_name}"/bin/activate) + 2))"
+    # Find the line number of the last line in deactivate's PYTHONHOME reset
+    # if statement block and inject the PYTHONPATH reset if statement block directly
+    # after it (2 lines later).
+    _SET_PYTHONPATH_INSERT_LINE="$(($(sed -n '\|    unset PYTHONHOME|=' "${_venv_name}"/bin/activate) + 2))"
     ed --silent "$(readlink -f "${_venv_name}"/bin/activate)" <<EOF
 ${_RECOVER_OLD_PYTHONPATH_LINE}i
 ${_RECOVER_OLD_PYTHONPATH}
@@ -70,6 +85,8 @@ unset _SET_PYTHONPATH_LINE
 unset _RECOVER_OLD_PYTHONPATH_LINE
 
 fi
+
+# Activate the virtual environment
 . "${_venv_name}/bin/activate"
 
 # Get latest pip, setuptools, wheel
