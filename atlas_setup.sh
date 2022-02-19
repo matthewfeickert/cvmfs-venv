@@ -12,8 +12,8 @@ if [ "$?" == "1" ]; then
 fi
 
 # Setup default LCG view
-default_LCG_release="LCG_98python3"
-default_LCG_platform="x86_64-centos7-gcc8-opt"
+default_LCG_release="LCG_101"
+default_LCG_platform="x86_64-centos7-gcc10-opt"
 # Check if on a CentOS 8 machine
 if [ "$(python3 -c 'from platform import platform; print("centos-8" in platform())')" == "True" ]; then
     default_LCG_release="LCG_100"
