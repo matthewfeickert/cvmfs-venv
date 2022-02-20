@@ -27,10 +27,10 @@ $ ssh lxplus
 [feickert@lxplus732 ~]$ curl -sLO https://raw.githubusercontent.com/matthewfeickert/cvmfs-venv/main/atlas_setup.sh
 [feickert@lxplus732 ~]$ . atlas_setup.sh example
 
-lsetup 'views LCG_98python3 x86_64-centos7-gcc8-opt'
+lsetup 'views LCG_101 x86_64-centos7-gcc10-opt'
 ************************************************************************
 Requested:  views ...
- Setting up views LCG_98python3:x86_64-centos7-gcc8-opt ...
+ Setting up views LCG_101:x86_64-centos7-gcc10-opt ...
 >>>>>>>>>>>>>>>>>>>>>>>>> Information for user <<<<<<<<<<<<<<<<<<<<<<<<<
 ************************************************************************
 # Creating new Python virtual environment 'example'
@@ -42,7 +42,7 @@ Home-page: UNKNOWN
 Author: UNKNOWN
 Author-email: UNKNOWN
 License: UNKNOWN
-Location: /cvmfs/sft.cern.ch/lcg/views/LCG_98python3/x86_64-centos7-gcc8-opt/lib/python3.7/site-packages
+Location: /cvmfs/sft.cern.ch/lcg/views/LCG_101/x86_64-centos7-gcc10-opt/lib/python3.9/site-packages
 Requires:
 Required-by:
 (example) [feickert@lxplus732 ~]$ python -m pip install --upgrade awkward  # This will show a false ERROR given CVFMS is in PYTHONPATH
@@ -62,19 +62,19 @@ Home-page: https://github.com/scikit-hep/awkward-1.0
 Author: Jim Pivarski
 Author-email: pivarski@princeton.edu
 License: BSD-3-Clause
-Location: /afs/cern.ch/user/f/feickert/example/lib/python3.7/site-packages
+Location: /afs/cern.ch/user/f/feickert/example/lib/python3.9/site-packages
 Requires: numpy, setuptools
-Required-by: uproot, uproot-methods
+Required-by:
 (example) [feickert@lxplus732 ~]$ deactivate  # Resets PYTHONPATH given added hooks
 [feickert@lxplus732 ~]$ python -m pip show awkward  # Get CVMFS's old version
 Name: awkward
-Version: 0.12.17
-Summary: Manipulate arrays of complex data structures as easily as Numpy.
-Home-page: https://github.com/scikit-hep/awkward-array
-Author: Jim Pivarski (IRIS-HEP)
+Version: 1.0.2
+Summary: Manipulate JSON-like data with NumPy-like idioms.
+Home-page: https://github.com/scikit-hep/awkward-1.0
+Author: Jim Pivarski
 Author-email: pivarski@princeton.edu
 License: BSD 3-clause
-Location: /cvmfs/sft.cern.ch/lcg/views/LCG_98python3/x86_64-centos7-gcc8-opt/lib/python3.7/site-packages
-Requires: numpy
-Required-by: uproot, uproot-methods
+Location: /cvmfs/sft.cern.ch/lcg/views/LCG_101/x86_64-centos7-gcc10-opt/lib/python3.9/site-packages
+Requires: setuptools, numpy
+Required-by:
 ```
