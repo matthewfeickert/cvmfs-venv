@@ -74,20 +74,20 @@ EOT
 cvmfs-venv-rebase () {
     # Reorder the PATH so that the virtual environment bin directory tree
     # is at the head.
-    if [ -n "${_OLD_VIRTUAL_PATH:-}" ] ; then
+    if [ -n "\${_OLD_VIRTUAL_PATH:-}" ] ; then
         # Bracket with ":" for easier parsing
-        _PATH=":${PATH}:"
+        _PATH=":\${PATH}:"
         # Strip $VIRTUAL_ENV/bin from PATH
-        VIRTUAL_ENV_BIN="${VIRTUAL_ENV}/bin"
-        _PATH="${_PATH//:${VIRTUAL_ENV_BIN}:/:}"
+        VIRTUAL_ENV_BIN="\${VIRTUAL_ENV}/bin"
+        _PATH="\${_PATH//:\${VIRTUAL_ENV_BIN}:/:}"
         # Remove ":" from start and end of PATH
-        _PATH="${_PATH#:}"
-        _PATH="${_PATH%:}"
+        _PATH="\${_PATH#:}"
+        _PATH="\${_PATH%:}"
         # Update value of PATH to restore at deactivate
-        _OLD_VIRTUAL_PATH="${_PATH}"
+        _OLD_VIRTUAL_PATH="\${_PATH}"
         # Prepend $VIRTUAL_ENV/bin to front of PATH
-        _PATH="${VIRTUAL_ENV_BIN}:${_PATH}"
-        export PATH="${_PATH}"
+        _PATH="\${VIRTUAL_ENV_BIN}:\${_PATH}"
+        export PATH="\${_PATH}"
 
         unset VIRTUAL_ENV_BIN
         unset _PATH
@@ -95,19 +95,19 @@ cvmfs-venv-rebase () {
 
     # Reorder the PYTHONPATH so that the virtual environment directory tree
     # is at the head.
-    if [ -n "${_VIRTUAL_SITE_PACKAGES:-}" ] ; then
+    if [ -n "\${_VIRTUAL_SITE_PACKAGES:-}" ] ; then
         # Bracket with ":" for easier parsing
-        _PYTHONPATH=":${PYTHONPATH}:"
+        _PYTHONPATH=":\${PYTHONPATH}:"
         # Strip _VIRTUAL_SITE_PACKAGES from PYTHONPATH
-        _PYTHONPATH="${_PYTHONPATH//:${_VIRTUAL_SITE_PACKAGES}:/:}"
+        _PYTHONPATH="\${_PYTHONPATH//:\${_VIRTUAL_SITE_PACKAGES}:/:}"
         # Remove ":" from start and end of PYTHONPATH
-        _PYTHONPATH="${_PYTHONPATH#:}"
-        _PYTHONPATH="${_PYTHONPATH%:}"
+        _PYTHONPATH="\${_PYTHONPATH#:}"
+        _PYTHONPATH="\${_PYTHONPATH%:}"
         # Update value of PYTHONPATH to restore at deactivate
-        _OLD_VIRTUAL_PYTHONPATH="${_PYTHONPATH}"
+        _OLD_VIRTUAL_PYTHONPATH="\${_PYTHONPATH}"
         # Prepend _VIRTUAL_SITE_PACKAGES_DIRECTORY_TREE to front of PYTHONPATH
-        _PYTHONPATH="${_VIRTUAL_SITE_PACKAGES}:${_PYTHONPATH}"
-        export PYTHONPATH="${_PYTHONPATH}"
+        _PYTHONPATH="\${_VIRTUAL_SITE_PACKAGES}:\${_PYTHONPATH}"
+        export PYTHONPATH="\${_PYTHONPATH}"
 
         unset _PYTHONPATH
     fi
