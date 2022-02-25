@@ -111,6 +111,15 @@ This is done by injecting Bash snippets directly into the `bin/activate` script 
 Python packages installed in the LCG view can still be accessed inside of the virtual environment.
 This can result in packages from the LCG view meeting requirements of other dependencies during a package install or upgrade (depending on the [upgrade strategy][pip-docs-upgrade-strategy]) and installing older versions then expected.
    - Suggestion: When installing or upgrading with `pip` use the [`--ignore-installed` flag][pip-docs-ignore-installed].
+* As the Python version tied to the virtual environment is provided by LCG view, any changes to the LCG view version require setting up the Python virtual environment from scratch.
+   - It is highly advised that your environment be controlled with strict `requirements.txt` and lock files (e.g. generated from [`pip-tools`][pip-tools] using `pip-compile`).
+   - Example:
+   ```console
+   (venv) $ python -m pip install --upgrade pip-tools
+   (venv) $ echo "scipy==1.8.0" > requirements.txt  # define high level requirements
+   (venv) $ pip-compile --generate-hashes --output-file requirements.lock requirements.txt  # Generate full environment lock file
+   (venv) $ python -m pip install --no-deps --require-hashes --only-binary :all: --requirement requirements.lock  # secure-install for reproducibility
+   ```
 * Having all of the environment manipulation happen inside of the `venv`'s `bin/activate` script means that all other environment setup that you want to persist **outside** of the virtual environment **must** happen before virtual environment activation.
 This essentially means that the virtual environment must be activated last in any setup script.
    - Example: If you want to use [`rucio`][rucio-site] both inside and outside of the virtual environment you need to set it up before sourcing the `bin/activate` script.
@@ -144,5 +153,7 @@ This essentially means that the virtual environment must be activated last in an
 
 [pip-docs-upgrade-strategy]: https://pip.pypa.io/en/stable/cli/pip_install/#cmdoption-upgrade-strategy
 [pip-docs-ignore-installed]: https://pip.pypa.io/en/stable/cli/pip_install/#cmdoption-I
+
+[pip-tools]: https://github.com/jazzband/pip-tools
 
 [rucio-site]: https://rucio.cern.ch/
