@@ -100,6 +100,15 @@ This is done by injecting Bash snippets directly into the `bin/activate` script 
 * As `cvmfs-venv` is just altering the contents of the `venv` virtual environment's `bin/activate` script it is just extending existing functionality and not trying to remake virtual environments.
 * Once the virtual environment is setup and modified there is no additional dependency on the `atlas_setup.sh` script that generated it.
    - While it saves time it is not needed. You can setup the environment again without it.
+   ```console
+   $ setupATLAS
+   $ lsetup "views LCG_101 x86_64-centos7-gcc10-opt"
+   $ . venv/bin/activate
+   ```
+   vs.
+   ```console
+   $ . atlas_setup.sh venv
+   ```
 * As the virtual environment  is **prepended** to `PYTHONPATH` all packages installed in the virtual environment are automatically given higher precedence over existing packages of the same name found in the LCG view.
    - If a package named `awkward` is found in the `venv` virtual environment and in the LCG view, `import awkward` with import it from the virtual environment.
 * Python packages not installed in the `venv` virtual environment but installed in the LCG view (e.g. ROOT, XRootD) can still be accessed inside of the virtual environment.
