@@ -105,6 +105,44 @@ This is done by injecting Bash snippets directly into the `bin/activate` script 
 * Python packages not installed in the `venv` virtual environment but installed in the LCG view (e.g. ROOT, XRootD) can still be accessed inside of the virtual environment.
    - **N.B.:** This is considered a "advantage" loosely, as it is only happening as a side effect of the isolation of the virtual environment being broken by the LCG view's `PYTHONPATH` manipulation.
 
+### Disadvantages
+
+* The isolation of a Python virtual environment is not recovered.
+Python packages installed in the LCG view can still be accessed inside of the virtual environment.
+This can result in packages from the LCG view meeting requirements of other dependencies during a package install or upgrade (depending on the [upgrade strategy][pip-docs-upgrade-strategy]) and installing older versions then expected.
+   - Suggestion: When installing or upgrading with `pip` use the [`--ignore-installed` flag][pip-docs-ignore-installed].
+* Having all of the environment manipulation happen inside of the `venv`'s `bin/activate` script means that all other environment setup that you want to persist **outside** of the virtual environment **must** happen before virtual environment activation.
+This essentially means that the virtual environment must be activated last in any setup script.
+   - Example: If you want to use [`rucio`][rucio-site] both inside and outside of the virtual environment you need to set it up before sourcing the `bin/activate` script.
+
+   ```console
+   $ setupATLAS
+   $ voms-proxy-init -voms atlas
+   $ lsetup rucio  # PYTHONPATH is altered by lsetup
+   $ command -v rucio  # rucio is found
+   $ . venv/bin/activate
+   (venv) $ command -v rucio  # rucio is found
+   (venv) $ deactivate
+   $ command -v rucio  # rucio is found
+   ```
+
+   If you perform further setup after the virtual enviroment is activated, the pre-activation `PYTHONPATH` without those changes on it will be reset after deactivating
+
+   ```console
+   $ setupATLAS
+   $ . venv/bin/activate
+   (venv) $ voms-proxy-init -voms atlas
+   (venv) $ lsetup rucio  # PYTHONPATH is altered by lsetup
+   (venv) $ command -v rucio  # rucio is found
+   (venv) $ deactivate
+   $ command -v rucio  # rucio is NOT found, PYTHONPATH has been reset
+   ```
+
 [PYTHONHOME docs]: https://docs.python.org/3/using/cmdline.html#envvar-PYTHONHOME
 [PYTHONPATH docs]: https://docs.python.org/3/using/cmdline.html#envvar-PYTHONPATH
 [venv docs]: https://docs.python.org/3/tutorial/venv.html
+
+[pip-docs-upgrade-strategy]: https://pip.pypa.io/en/stable/cli/pip_install/#cmdoption-upgrade-strategy
+[pip-docs-ignore-installed]: https://pip.pypa.io/en/stable/cli/pip_install/#cmdoption-I
+
+[rucio-site]: https://rucio.cern.ch/
