@@ -120,6 +120,10 @@ This is done by injecting Bash snippets directly into the `bin/activate` script 
 Python packages installed in the LCG view can still be accessed inside of the virtual environment.
 This can result in packages from the LCG view meeting requirements of other dependencies during a package install or upgrade (depending on the [upgrade strategy][pip-docs-upgrade-strategy]) and installing older versions then expected.
    - Suggestion: When installing or upgrading with `pip` use the [`--ignore-installed` flag][pip-docs-ignore-installed].
+   - Suggestion: When using [`pip list`][pip-docs-list] to inspect installed packages, use the `--local` flag to not list packages from the LCG view.
+   ```
+   (venv) $ python -m pip list --local
+   ```
 * As the Python version tied to the virtual environment is provided by LCG view, any changes to the LCG view version require setting up the Python virtual environment from scratch.
    - It is highly advised that your environment be controlled with strict `requirements.txt` and lock files (e.g. generated from [`pip-tools`][pip-tools] using `pip-compile`).
    - Example:
@@ -160,6 +164,7 @@ This essentially means that the virtual environment must be activated last in an
 [PYTHONPATH docs]: https://docs.python.org/3/using/cmdline.html#envvar-PYTHONPATH
 [venv docs]: https://docs.python.org/3/tutorial/venv.html
 
+[pip-docs-list]: https://pip.pypa.io/en/stable/cli/pip_list/#pip-list
 [pip-docs-upgrade-strategy]: https://pip.pypa.io/en/stable/cli/pip_install/#cmdoption-upgrade-strategy
 [pip-docs-ignore-installed]: https://pip.pypa.io/en/stable/cli/pip_install/#cmdoption-I
 
