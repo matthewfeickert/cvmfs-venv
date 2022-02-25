@@ -86,6 +86,9 @@ By placing the contents of all the installed software of an LCG view or ATLAS re
 It is not possible to fix this in a reliable and robust way that will not break the access of other software in the LCG view or ATLAS environment dependent on the Python packages in them.
 The best that can be done is to control the directory tree at the **head** of `PYTHONPATH` in a stable manner that allows for most of the benefits of a Python virtual environment (control of install and versions of packages, isolation of directory tree).
 
+While [`lcgenv`][lcgenv] allows for package specific environment building, it still lacks the control to specify arbitrary versions of Python packages and will load additional libraries beyond what is strictly required by the target package dependency requirements.
+That being said, if you are able to use an LCG view or `lcgenv` without any additional setup, you may not have need of specifying a Python virtual environment.
+
 ## How things work
 
 `cvmfs-venv` provides a shim layer to manage activation and use of a Python virtual environment created with LCG view resources.
@@ -170,4 +173,5 @@ This essentially means that the virtual environment must be activated last in an
 
 [pip-tools]: https://github.com/jazzband/pip-tools
 
+[lcgenv]: https://gitlab.cern.ch/GENSER/lcgenv
 [rucio-site]: https://rucio.cern.ch/
