@@ -82,10 +82,14 @@ Required-by:
 ## Why is this needed?
 
 When an LCG view or an ATLAS computing environment that uses software from CVFMS is setup it manipulates and alters the [`PYTHONPATH` environment variable][PYTHONPATH docs].
-By placing the contents of all the installed software of an LCG view or ATLAS release onto `PYTHONPATH` for the rest of the shell session
-
-`cvmfs-venv` is needed as there needs to be a shim layer
+By placing the contents of all the installed software of an LCG view or ATLAS release onto `PYTHONPATH` for the rest of the shell session, the protections and isolation of a Python virtual environment are broken.
+It is not possible to fix this in a reliable and robust way that will not break the access of other software in the LCG view or ATLAS environment dependent on the Python packages in them.
+The best that can be done is to control the environment at the **head** of `PYTHONPATH` in a stable manner, that allows for most of the benefits of a Python virtual environment (control of install and versions of packages, isolation of directory tree).
 
 [PYTHONPATH docs]: https://docs.python.org/3/using/cmdline.html#envvar-PYTHONPATH
 
 ## How things work
+
+`cvmfs-venv` provides
+
+`cvmfs-venv` is needed as there needs to be a shim layer
