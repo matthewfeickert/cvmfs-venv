@@ -47,8 +47,8 @@ Requires:
 Required-by:
 (example) [feickert@lxplus732 ~]$ python -m pip install --upgrade awkward  # This will show a false ERROR given CVFMS is in PYTHONPATH
 (example) [feickert@lxplus732 ~]$ python
-Python 3.7.6 (default, Aug 12 2020, 09:46:40)
-[GCC 8.3.0] on linux
+Python 3.9.6 (default, Sep  6 2021, 15:35:00)
+[GCC 10.3.0] on linux
 Type "help", "copyright", "credits" or "license" for more information.
 >>> import ROOT
 >>> import XRootD
