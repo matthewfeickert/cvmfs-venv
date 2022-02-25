@@ -65,6 +65,13 @@ License: BSD-3-Clause
 Location: /afs/cern.ch/user/f/feickert/example/lib/python3.9/site-packages
 Requires: numpy, setuptools
 Required-by:
+(example) [feickert@lxplus732 ~]$ python -m pip list --local  # View of virtual environment controlled packages
+Package    Version
+---------- -------
+awkward    1.7.0
+pip        22.0.3
+setuptools 60.9.3
+wheel      0.37.1
 (example) [feickert@lxplus732 ~]$ deactivate  # Resets PYTHONPATH given added hooks
 [feickert@lxplus732 ~]$ python -m pip show awkward  # Get CVMFS's old version
 Name: awkward
