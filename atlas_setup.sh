@@ -149,7 +149,7 @@ EOF
 
     # Find the line number of the unset -f cvmfs-venv-rebase line in deactivate's destructive unset
     # and inject the cvmfs-venv-rebase function directly after it (4 lines later).
-    _CVMFS_VENV_REBASE_LINE="$(($(sed -n '\|unset -f cvmfs-venv-rebase|=' "${_venv_name}"/bin/activate) + 1))"
+    _CVMFS_VENV_REBASE_LINE="$(($(sed -n '\|unset -f cvmfs-venv-rebase|=' "${_venv_name}"/bin/activate) + 4))"
     ed --silent "$(readlink -f "${_venv_name}"/bin/activate)" <<EOF
 ${_CVMFS_VENV_REBASE_LINE}i
 ${_CVMFS_VENV_REBASE}
