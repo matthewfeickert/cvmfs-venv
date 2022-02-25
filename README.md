@@ -78,3 +78,14 @@ Location: /cvmfs/sft.cern.ch/lcg/views/LCG_101/x86_64-centos7-gcc10-opt/lib/pyth
 Requires: setuptools, numpy
 Required-by:
 ```
+
+## Why is this needed?
+
+When an LCG view or an ATLAS computing environment that uses software from CVFMS is setup it manipulates and alters the [`PYTHONPATH` environment variable][PYTHONPATH docs].
+By placing the contents of all the installed software of an LCG view or ATLAS release onto `PYTHONPATH` for the rest of the shell session
+
+`cvmfs-venv` is needed as there needs to be a shim layer
+
+[PYTHONPATH docs]: https://docs.python.org/3/using/cmdline.html#envvar-PYTHONPATH
+
+## How things work
