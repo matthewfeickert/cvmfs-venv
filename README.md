@@ -126,7 +126,7 @@ This essentially means that the virtual environment must be activated last in an
 
    ```console
    $ setupATLAS
-   $ voms-proxy-init -voms atlas
+   $ lsetup "views LCG_101 x86_64-centos7-gcc10-opt"
    $ lsetup rucio  # PYTHONPATH is altered by lsetup
    $ command -v rucio  # rucio is found
    $ . venv/bin/activate
@@ -139,8 +139,8 @@ This essentially means that the virtual environment must be activated last in an
 
    ```console
    $ setupATLAS
+   $ lsetup "views LCG_101 x86_64-centos7-gcc10-opt"
    $ . venv/bin/activate
-   (venv) $ voms-proxy-init -voms atlas
    (venv) $ lsetup rucio  # PYTHONPATH is altered by lsetup
    (venv) $ command -v rucio  # rucio is found
    (venv) $ deactivate
