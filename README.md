@@ -81,10 +81,10 @@ Required-by:
 
 ## Why is this needed?
 
-When an LCG view or an ATLAS computing environment that uses software from CVFMS is setup it manipulates and alters the [`PYTHONPATH` environment variable][PYTHONPATH docs].
+When an LCG view or an ATLAS computing environment that uses software from CVFMS is setup, it manipulates and alters the [`PYTHONPATH` environment variable][PYTHONPATH docs].
 By placing the contents of all the installed software of an LCG view or ATLAS release onto `PYTHONPATH` for the rest of the shell session, the protections and isolation of a Python virtual environment are broken.
 It is not possible to fix this in a reliable and robust way that will not break the access of other software in the LCG view or ATLAS environment dependent on the Python packages in them.
-The best that can be done is to control the environment at the **head** of `PYTHONPATH` in a stable manner, that allows for most of the benefits of a Python virtual environment (control of install and versions of packages, isolation of directory tree).
+The best that can be done is to control the directory tree at the **head** of `PYTHONPATH` in a stable manner that allows for most of the benefits of a Python virtual environment (control of install and versions of packages, isolation of directory tree).
 
 ## How things work
 
@@ -97,17 +97,17 @@ This is done by injecting Bash snippets directly into the `bin/activate` script 
 
 ###  Advantages
 
-* As `cvmfs-venv` is just altering the contents of the `venv` virtual environment's `bin/activate` script it is just extending existing functionality and not trying to remake virtual environments.
+* As `cvmfs-venv` is just altering the contents of the `venv` virtual environment's `bin/activate` script it is extending existing functionality and not trying to remake virtual environments.
 * Once the virtual environment is setup and modified there is no additional dependency on the `atlas_setup.sh` script that generated it.
    - While it saves time it is not needed. You can setup the environment again without it.
+   ```console
+   $ . atlas_setup.sh venv
+   ```
+   vs.
    ```console
    $ setupATLAS
    $ lsetup "views LCG_101 x86_64-centos7-gcc10-opt"
    $ . venv/bin/activate
-   ```
-   vs.
-   ```console
-   $ . atlas_setup.sh venv
    ```
 * As the virtual environment  is **prepended** to `PYTHONPATH` all packages installed in the virtual environment are automatically given higher precedence over existing packages of the same name found in the LCG view.
    - If a package named `awkward` is found in the `venv` virtual environment and in the LCG view, `import awkward` with import it from the virtual environment.
@@ -125,7 +125,7 @@ This can result in packages from the LCG view meeting requirements of other depe
    (venv) $ python -m pip list --local
    ```
 * As the Python version tied to the virtual environment is provided by LCG view, any changes to the LCG view version require setting up the Python virtual environment from scratch.
-   - It is highly advised that your environment be controlled with strict `requirements.txt` and lock files (e.g. generated from [`pip-tools`][pip-tools] using `pip-compile`).
+   - It is highly advised that your environment be controlled with strict `requirements.txt` and lock files (e.g. generated from [`pip-tools`][pip-tools] using `pip-compile`) making it reproducible and easy to setup again as a consequence.
    - Example:
    ```console
    (venv) $ python -m pip install --upgrade pip-tools
