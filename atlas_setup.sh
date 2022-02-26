@@ -64,6 +64,7 @@ EOT
     # Added by https://github.com/matthewfeickert/cvmfs-venv
     cvmfs-venv-rebase  # Keep lsetup PATHs added while venv active
 
+
 EOT
 )
 
