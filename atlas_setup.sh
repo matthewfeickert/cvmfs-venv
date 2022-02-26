@@ -52,12 +52,18 @@ EOT
     _RECOVER_OLD_PYTHONPATH=$(cat <<-EOT
     # Added by https://github.com/matthewfeickert/cvmfs-venv
     if [ -n "\${_OLD_VIRTUAL_PYTHONPATH:-}" ] ; then
-        cvmfs-venv-rebase  # Keep lsetup PATHs added while venv active
         PYTHONPATH="\${_OLD_VIRTUAL_PYTHONPATH:-}"
         export PYTHONPATH
         unset _OLD_VIRTUAL_PYTHONPATH
         unset _VIRTUAL_SITE_PACKAGES
     fi
+EOT
+)
+
+    _RUN_REBASE=$(cat <<-EOT
+    # Added by https://github.com/matthewfeickert/cvmfs-venv
+    cvmfs-venv-rebase  # Keep lsetup PATHs added while venv active
+
 EOT
 )
 
@@ -137,6 +143,16 @@ ${_SET_PYTHONPATH}
 wq
 EOF
 
+    # Find the line number of the deactivate function and inject the cvmfs-venv-rebase directly after it
+    # (1 line later).
+    _RUN_REBASE_LINE="$(($(sed -n '\|deactivate ()|=' "${_venv_name}"/bin/activate) + 1))"
+    ed --silent "$(readlink -f "${_venv_name}"/bin/activate)" <<EOF
+${_RUN_REBASE_LINE}i
+${_RUN_REBASE}
+.
+wq
+EOF
+
     # Find the line number of the unset -f deactivate line in deactivate's destructive unset
     # and inject the cvmfs-venv-rebase reset directly after it (1 line later).
     _DESCTRUCTIVE_UNSET_LINE="$(($(sed -n '\|unset -f deactivate|=' "${_venv_name}"/bin/activate) + 1))"
@@ -159,11 +175,13 @@ EOF
 
 unset _SET_PYTHONPATH
 unset _RECOVER_OLD_PYTHONPATH
+unset _RUN_REBASE
 unset _DESCTRUCTIVE_UNSET
 unset _CVMFS_VENV_REBASE
 
 unset _SET_PYTHONPATH_LINE
 unset _RECOVER_OLD_PYTHONPATH_LINE
+unset _RUN_REBASE_LINE
 unset _DESCTRUCTIVE_UNSET_LINE
 unset _CVMFS_VENV_REBASE_LINE
 
