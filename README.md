@@ -123,6 +123,31 @@ This is done by injecting Bash snippets directly into the `bin/activate` script 
    - If a package named `awkward` is found in the `venv` virtual environment and in the LCG view, `import awkward` with import it from the virtual environment.
 * Python packages not installed in the `venv` virtual environment but installed in the LCG view (e.g. ROOT, XRootD) can still be accessed inside of the virtual environment.
    - **N.B.:** This is considered a "advantage" loosely, as it is only happening as a side effect of the isolation of the virtual environment being broken by the LCG view's `PYTHONPATH` manipulation.
+* Through additional manipulation of `PYTHONPATH` and `PATH` with the added `cvmfs-venv-rebase` functionality, any software added to `PATH` or `PYTHONPATH` (e.g., by CVMFS or ATLAS software) while the virtual environment is active will persist on `PATH` or `PYTHONPATH` when the virtual environment is deactivated, allowing for a smoother interactive experience.
+   - Example: If you want to use [`rucio`][rucio-site] both inside and outside of the virtual environment you can set it up either before sourcing the `bin/activate` script
+
+   ```console
+   $ setupATLAS
+   $ lsetup "views LCG_101 x86_64-centos7-gcc10-opt"
+   $ lsetup rucio  # PYTHONPATH is altered by lsetup
+   $ command -v rucio  # rucio is found
+   $ . venv/bin/activate
+   (venv) $ command -v rucio  # rucio is found
+   (venv) $ deactivate
+   $ command -v rucio  # rucio is found
+   ```
+
+   or after, as `cvmfs-venv-rebase` will update path variables and keep the virtual environment's directory trees at the heads.
+
+   ```console
+   $ setupATLAS
+   $ lsetup "views LCG_101 x86_64-centos7-gcc10-opt"
+   $ . venv/bin/activate
+   (venv) $ lsetup rucio  # PYTHONPATH is altered by lsetup
+   (venv) $ command -v rucio  # rucio is found
+   (venv) $ deactivate  # deactivate calls cvmfs-venv-rebase to persist non-venv paths
+   $ command -v rucio  # rucio is found
+   ```
 
 ### Disadvantages
 
@@ -143,32 +168,8 @@ This can result in packages from the LCG view meeting requirements of other depe
    (venv) $ pip-compile --generate-hashes --output-file requirements.lock requirements.txt  # Generate full environment lock file
    (venv) $ python -m pip install --no-deps --require-hashes --only-binary :all: --requirement requirements.lock  # secure-install for reproducibility
    ```
-* Having all of the environment manipulation happen inside of the `venv`'s `bin/activate` script means that all other environment setup that you want to persist **outside** of the virtual environment **must** happen before virtual environment activation.
-This essentially means that the virtual environment must be activated last in any setup script.
-   - Example: If you want to use [`rucio`][rucio-site] both inside and outside of the virtual environment you need to set it up before sourcing the `bin/activate` script.
-
-   ```console
-   $ setupATLAS
-   $ lsetup "views LCG_101 x86_64-centos7-gcc10-opt"
-   $ lsetup rucio  # PYTHONPATH is altered by lsetup
-   $ command -v rucio  # rucio is found
-   $ . venv/bin/activate
-   (venv) $ command -v rucio  # rucio is found
-   (venv) $ deactivate
-   $ command -v rucio  # rucio is found
-   ```
-
-   If you perform further setup after the virtual enviroment is activated, the pre-activation `PYTHONPATH` without those changes on it will be reset after deactivating
-
-   ```console
-   $ setupATLAS
-   $ lsetup "views LCG_101 x86_64-centos7-gcc10-opt"
-   $ . venv/bin/activate
-   (venv) $ lsetup rucio  # PYTHONPATH is altered by lsetup
-   (venv) $ command -v rucio  # rucio is found
-   (venv) $ deactivate
-   $ command -v rucio  # rucio is NOT found, PYTHONPATH has been reset
-   ```
+* Having all of the environment manipulation happen inside of the `venv`'s `bin/activate` script means that the virtual environment needs to be activated after any LCG view or ATLAS software (which make `PYTHONPATH` not empty) to trigger `PYTHONPATH` manipulation.
+This essentially means that the virtual environment must not be activated first in any setup script.
 
 [PYTHONHOME docs]: https://docs.python.org/3/using/cmdline.html#envvar-PYTHONHOME
 [PYTHONPATH docs]: https://docs.python.org/3/using/cmdline.html#envvar-PYTHONPATH
