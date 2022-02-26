@@ -60,6 +60,10 @@ EOT
 EOT
 )
 
+    # When deactivate is being run, run cvmfs-venv-rebase as the very first action
+    # to ensure that _OLD_VIRTUAL_PYTHONPATH is updated to the current value of
+    # PYTHONPATH so that software loaded with CVMFS is still available when
+    # the virtual environment is deactivated.
     # c.f. https://unix.stackexchange.com/a/534073/275785
     nl=$'\n'
     _RUN_REBASE=$(cat <<-EOT
@@ -78,6 +82,12 @@ EOT
 EOT
 )
 
+    # Add in functionality to:
+    # * Rebase the virtual environment's PATH and PYTHONPATH directory trees
+    # to the head of those environment variables.
+    # * Update the value of _OLD_VIRTUAL_PATH and _OLD_VIRTUAL_PYTHONPATH
+    # to allow for software added to them from inside the virtual environment
+    # to be usable outside.
     _CVMFS_VENV_REBASE=$(cat <<-EOT
 # Added by https://github.com/matthewfeickert/cvmfs-venv
 cvmfs-venv-rebase () {
