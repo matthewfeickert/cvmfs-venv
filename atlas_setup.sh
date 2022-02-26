@@ -60,12 +60,15 @@ EOT
 EOT
 )
 
+    # c.f. https://unix.stackexchange.com/a/534073/275785
+    nl=$'\n'
     _RUN_REBASE=$(cat <<-EOT
     # Added by https://github.com/matthewfeickert/cvmfs-venv
     cvmfs-venv-rebase  # Keep lsetup PATHs added while venv active
-
+    $nl
 EOT
 )
+    unset nl
 
     # If the deactivate is being run in a destructive manner (i.e., anytime that isn't
     # the sanitizing pass through on activate) then unset cvmfs-venv-rebase.
@@ -148,7 +151,7 @@ EOF
     _RUN_REBASE_LINE="$(($(sed -n '\|deactivate ()|=' "${_venv_name}"/bin/activate) + 1))"
     ed --silent "$(readlink -f "${_venv_name}"/bin/activate)" <<EOF
 ${_RUN_REBASE_LINE}i
-"${_RUN_REBASE}"
+${_RUN_REBASE}
 .
 wq
 EOF
