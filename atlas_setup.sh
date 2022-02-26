@@ -1,46 +1,5 @@
 #!/bin/bash
 
-# Ensure that pip can't install outside a virtual environment
-export PIP_REQUIRE_VIRTUALENV=true
-
-# Check to see if we need to run setupATLAS
-command -v lsetup > /dev/null
-if [ "$?" == "1" ]; then
-    export ATLAS_LOCAL_ROOT_BASE=/cvmfs/atlas.cern.ch/repo/ATLASLocalRootBase
-    # Allows for working with wrappers as well
-    . "${ATLAS_LOCAL_ROOT_BASE}/user/atlasLocalSetup.sh" --quiet || echo "~~~ERROR: setupATLAS failed!~~~"
-fi
-
-# Setup default LCG view
-default_LCG_release="LCG_101"
-default_LCG_platform="x86_64-centos7-gcc10-opt"
-# Check if on a CentOS 8 machine
-if [ "$(python3 -c 'from platform import platform; print("centos-8" in platform())')" == "True" ]; then
-    default_LCG_release="LCG_101"
-    default_LCG_platform="x86_64-centos8-gcc11-opt"
-fi
-printf "\nlsetup 'views %s %s'\n" "${default_LCG_release}" "${default_LCG_platform}"
-lsetup "views ${default_LCG_release} ${default_LCG_platform}"
-
-_venv_name="${1:-venv}"
-if [ ! -d "${_venv_name}" ]; then
-    printf "# Creating new Python virtual environment '%s'\n" "${_venv_name}"
-    python3 -m venv "${_venv_name}"
-
-    overwrite_venv "$(readlink -f ${_venv_name})"
-
-    unset -f overwrite_venv
-fi
-
-# Activate the virtual environment
-. "${_venv_name}/bin/activate"
-
-# Get latest pip, setuptools, wheel
-# Hide not-real errors from CVMFS by sending to /dev/null
-python -m pip --quiet install --upgrade pip setuptools wheel &> /dev/null
-
-unset _venv_name
-
 overwrite_venv () {
     cat << EOF > "${1}/bin/activate"
 # This file must be used with "source bin/activate" *from bash*
@@ -98,7 +57,7 @@ cvmfs-venv-rebase () {
     if [ -n "\${_OLD_VIRTUAL_PATH:-}" ] ; then
         # Bracket with ":" for easier parsing
         _PATH=":\${PATH}:"
-        # Strip $VIRTUAL_ENV/bin from PATH
+        # Strip \$VIRTUAL_ENV/bin from PATH
         VIRTUAL_ENV_BIN="\${VIRTUAL_ENV}/bin"
         _PATH="\${_PATH//:\${VIRTUAL_ENV_BIN}:/:}"
         # Remove ":" from start and end of PATH
@@ -106,7 +65,7 @@ cvmfs-venv-rebase () {
         _PATH="\${_PATH%:}"
         # Update value of PATH to restore at deactivate
         _OLD_VIRTUAL_PATH="\${_PATH}"
-        # Prepend $VIRTUAL_ENV/bin to front of PATH
+        # Prepend \$VIRTUAL_ENV/bin to front of PATH
         _PATH="\${VIRTUAL_ENV_BIN}:\${_PATH}"
         export PATH="\${_PATH}"
 
@@ -145,7 +104,7 @@ export PATH
 
 # unset PYTHONHOME if set
 # this will fail if PYTHONHOME is set to the empty string (which is bad anyway)
-# could use `if (set -u; : $PYTHONHOME) ;` in bash
+# could use `if (set -u; : \$PYTHONHOME) ;` in bash
 if [ -n "\${PYTHONHOME:-}" ] ; then
     _OLD_VIRTUAL_PYTHONHOME="\${PYTHONHOME:-}"
     unset PYTHONHOME
@@ -167,9 +126,50 @@ fi
 
 # This should detect bash and zsh, which have a hash command that must
 # be called to get it to forget past commands.  Without forgetting
-# past commands the $PATH changes we made may not be respected
+# past commands the \$PATH changes we made may not be respected
 if [ -n "\${BASH:-}" -o -n "\${ZSH_VERSION:-}" ] ; then
     hash -r 2> /dev/null
 fi
 EOF
 }
+
+# Ensure that pip can't install outside a virtual environment
+export PIP_REQUIRE_VIRTUALENV=true
+
+# Check to see if we need to run setupATLAS
+command -v lsetup > /dev/null
+if [ "$?" == "1" ]; then
+    export ATLAS_LOCAL_ROOT_BASE=/cvmfs/atlas.cern.ch/repo/ATLASLocalRootBase
+    # Allows for working with wrappers as well
+    . "${ATLAS_LOCAL_ROOT_BASE}/user/atlasLocalSetup.sh" --quiet || echo "~~~ERROR: setupATLAS failed!~~~"
+fi
+
+# Setup default LCG view
+default_LCG_release="LCG_101"
+default_LCG_platform="x86_64-centos7-gcc10-opt"
+# Check if on a CentOS 8 machine
+if [ "$(python3 -c 'from platform import platform; print("centos-8" in platform())')" == "True" ]; then
+    default_LCG_release="LCG_101"
+    default_LCG_platform="x86_64-centos8-gcc11-opt"
+fi
+printf "\nlsetup 'views %s %s'\n" "${default_LCG_release}" "${default_LCG_platform}"
+lsetup "views ${default_LCG_release} ${default_LCG_platform}"
+
+_venv_name="${1:-venv}"
+if [ ! -d "${_venv_name}" ]; then
+    printf "# Creating new Python virtual environment '%s'\n" "${_venv_name}"
+    python3 -m venv "${_venv_name}"
+
+    overwrite_venv "$(readlink -f ${_venv_name})"
+
+    unset -f overwrite_venv
+fi
+
+# Activate the virtual environment
+. "${_venv_name}/bin/activate"
+
+# Get latest pip, setuptools, wheel
+# Hide not-real errors from CVMFS by sending to /dev/null
+python -m pip --quiet install --upgrade pip setuptools wheel &> /dev/null
+
+unset _venv_name
