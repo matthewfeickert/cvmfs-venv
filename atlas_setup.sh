@@ -64,7 +64,6 @@ EOT
     # Added by https://github.com/matthewfeickert/cvmfs-venv
     cvmfs-venv-rebase  # Keep lsetup PATHs added while venv active
 
-
 EOT
 )
 
@@ -149,7 +148,7 @@ EOF
     _RUN_REBASE_LINE="$(($(sed -n '\|deactivate ()|=' "${_venv_name}"/bin/activate) + 1))"
     ed --silent "$(readlink -f "${_venv_name}"/bin/activate)" <<EOF
 ${_RUN_REBASE_LINE}i
-${_RUN_REBASE}
+"${_RUN_REBASE}"
 .
 wq
 EOF
