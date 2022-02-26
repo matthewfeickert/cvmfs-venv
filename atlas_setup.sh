@@ -86,7 +86,7 @@ cvmfs-venv-rebase () {
     if [ -n "\${_OLD_VIRTUAL_PATH:-}" ] ; then
         # Bracket with ":" for easier parsing
         _PATH=":\${PATH}:"
-        # Strip $VIRTUAL_ENV/bin from PATH
+        # Strip \$VIRTUAL_ENV/bin from PATH
         VIRTUAL_ENV_BIN="\${VIRTUAL_ENV}/bin"
         _PATH="\${_PATH//:\${VIRTUAL_ENV_BIN}:/:}"
         # Remove ":" from start and end of PATH
@@ -94,7 +94,7 @@ cvmfs-venv-rebase () {
         _PATH="\${_PATH%:}"
         # Update value of PATH to restore at deactivate
         _OLD_VIRTUAL_PATH="\${_PATH}"
-        # Prepend $VIRTUAL_ENV/bin to front of PATH
+        # Prepend \$VIRTUAL_ENV/bin to front of PATH
         _PATH="\${VIRTUAL_ENV_BIN}:\${_PATH}"
         export PATH="\${_PATH}"
 
