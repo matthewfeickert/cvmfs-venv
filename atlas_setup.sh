@@ -27,29 +27,40 @@ if [ ! -d "${_venv_name}" ]; then
     printf "# Creating new Python virtual environment '%s'\n" "${_venv_name}"
     python3 -m venv "${_venv_name}"
 
-    # When setting up the Python virtual environment shell variables in the
-    # main section of the <venv>/bin/activate script, copy the pattern used
-    # for PYTHONHOME to also place the <venv>'s site-packages at the front
-    # of PYTHONPATH so that they are ahead of the LCG view's packages in
-    # priority.
-    _SET_PYTHONPATH=$(cat <<-EOT
-# Added by https://github.com/matthewfeickert/cvmfs-venv
-if [ -n "\${PYTHONPATH:-}" ] ; then
-    _OLD_VIRTUAL_PYTHONPATH="\${PYTHONPATH:-}"
-    unset PYTHONPATH
-    unset _VIRTUAL_SITE_PACKAGES
-    _VIRTUAL_SITE_PACKAGES="\$(find \${VIRTUAL_ENV}/lib/ -type d -name site-packages)"
-    export PYTHONPATH="\${_VIRTUAL_SITE_PACKAGES}:\${_OLD_VIRTUAL_PYTHONPATH}"
-fi
-EOT
-)
+    overwrite_venv "$(readlink -f ${_venv_name})"
 
-    # When deactivate is being run, reset the PYTHONPATH to what is was before
-    # activation of the Python virtual environment. This ensures that the <venv>'s
-    # site-packages are removed from PYTHONPATH so there is no collision if
-    # attempting to use a different virtual environment or if attempting to use
-    # the LCG view's packages.
-    _RECOVER_OLD_PYTHONPATH=$(cat <<-EOT
+    unset -f overwrite_venv
+fi
+
+# Activate the virtual environment
+. "${_venv_name}/bin/activate"
+
+# Get latest pip, setuptools, wheel
+# Hide not-real errors from CVMFS by sending to /dev/null
+python -m pip --quiet install --upgrade pip setuptools wheel &> /dev/null
+
+unset _venv_name
+
+overwrite_venv () {
+    cat << EOF > "${1}/bin/activate"
+# This file must be used with "source bin/activate" *from bash*
+# you cannot run it directly
+
+deactivate () {
+    # Added by https://github.com/matthewfeickert/cvmfs-venv
+    cvmfs-venv-rebase  # Keep lsetup PATHs added while venv active
+
+    # reset old environment variables
+    if [ -n "\${_OLD_VIRTUAL_PATH:-}" ] ; then
+        PATH="\${_OLD_VIRTUAL_PATH:-}"
+        export PATH
+        unset _OLD_VIRTUAL_PATH
+    fi
+    if [ -n "\${_OLD_VIRTUAL_PYTHONHOME:-}" ] ; then
+        PYTHONHOME="\${_OLD_VIRTUAL_PYTHONHOME:-}"
+        export PYTHONHOME
+        unset _OLD_VIRTUAL_PYTHONHOME
+    fi
     # Added by https://github.com/matthewfeickert/cvmfs-venv
     if [ -n "\${_OLD_VIRTUAL_PYTHONPATH:-}" ] ; then
         PYTHONPATH="\${_OLD_VIRTUAL_PYTHONPATH:-}"
@@ -57,28 +68,29 @@ EOT
         unset _OLD_VIRTUAL_PYTHONPATH
         unset _VIRTUAL_SITE_PACKAGES
     fi
-EOT
-)
 
-    # c.f. https://unix.stackexchange.com/a/534073/275785
-    nl=$'\n'
-    _RUN_REBASE=$(cat <<-EOT
-    # Added by https://github.com/matthewfeickert/cvmfs-venv
-    cvmfs-venv-rebase  # Keep lsetup PATHs added while venv active
-    $nl
-EOT
-)
-    unset nl
+    # This should detect bash and zsh, which have a hash command that must
+    # be called to get it to forget past commands.  Without forgetting
+    # past commands the \$PATH changes we made may not be respected
+    if [ -n "\${BASH:-}" -o -n "\${ZSH_VERSION:-}" ] ; then
+        hash -r 2> /dev/null
+    fi
 
-    # If the deactivate is being run in a destructive manner (i.e., anytime that isn't
-    # the sanitizing pass through on activate) then unset cvmfs-venv-rebase.
-    _DESCTRUCTIVE_UNSET=$(cat <<-EOT
+    if [ -n "\${_OLD_VIRTUAL_PS1:-}" ] ; then
+        PS1="\${_OLD_VIRTUAL_PS1:-}"
+        export PS1
+        unset _OLD_VIRTUAL_PS1
+    fi
+
+    unset VIRTUAL_ENV
+    if [ ! "\${1:-}" = "nondestructive" ] ; then
+    # Self destruct!
+        unset -f deactivate
         # Added by https://github.com/matthewfeickert/cvmfs-venv
         unset -f cvmfs-venv-rebase
-EOT
-)
+    fi
+}
 
-    _CVMFS_VENV_REBASE=$(cat <<-EOT
 # Added by https://github.com/matthewfeickert/cvmfs-venv
 cvmfs-venv-rebase () {
     # Reorder the PATH so that the virtual environment bin directory tree
@@ -121,80 +133,43 @@ cvmfs-venv-rebase () {
         unset _PYTHONPATH
     fi
 }
-EOT
-)
+# unset irrelevant variables
+deactivate nondestructive
 
-    # Find the line number of the last line in the PYTHONHOME set if statement
-    # block and inject the PYTHONPATH if statement block directly after it
-    # (2 lines later).
-    _RECOVER_OLD_PYTHONPATH_LINE="$(($(sed -n '\|unset _OLD_VIRTUAL_PYTHONHOME|=' "${_venv_name}"/bin/activate) + 2))"
-    ed --silent "$(readlink -f "${_venv_name}"/bin/activate)" <<EOF
-${_RECOVER_OLD_PYTHONPATH_LINE}i
-${_RECOVER_OLD_PYTHONPATH}
-.
-wq
-EOF
+VIRTUAL_ENV="${1}"
+export VIRTUAL_ENV
 
-    # Find the line number of the last line in deactivate's PYTHONHOME reset
-    # if statement block and inject the PYTHONPATH reset if statement block directly
-    # after it (2 lines later).
-    _SET_PYTHONPATH_INSERT_LINE="$(($(sed -n '\|    unset PYTHONHOME|=' "${_venv_name}"/bin/activate) + 2))"
-    ed --silent "$(readlink -f "${_venv_name}"/bin/activate)" <<EOF
-${_SET_PYTHONPATH_INSERT_LINE}i
-${_SET_PYTHONPATH}
-.
-wq
-EOF
+_OLD_VIRTUAL_PATH="\$PATH"
+PATH="\$VIRTUAL_ENV/bin:\$PATH"
+export PATH
 
-    # Find the line number of the deactivate function and inject the cvmfs-venv-rebase directly after it
-    # (1 line later).
-    _RUN_REBASE_LINE="$(($(sed -n '\|deactivate ()|=' "${_venv_name}"/bin/activate) + 1))"
-    ed --silent "$(readlink -f "${_venv_name}"/bin/activate)" <<EOF
-${_RUN_REBASE_LINE}i
-${_RUN_REBASE}
-.
-wq
-EOF
-
-    # Find the line number of the unset -f deactivate line in deactivate's destructive unset
-    # and inject the cvmfs-venv-rebase reset directly after it (1 line later).
-    _DESCTRUCTIVE_UNSET_LINE="$(($(sed -n '\|unset -f deactivate|=' "${_venv_name}"/bin/activate) + 1))"
-    ed --silent "$(readlink -f "${_venv_name}"/bin/activate)" <<EOF
-${_DESCTRUCTIVE_UNSET_LINE}i
-${_DESCTRUCTIVE_UNSET}
-.
-wq
-EOF
-
-    # Find the line number of the unset -f cvmfs-venv-rebase line in deactivate's destructive unset
-    # and inject the cvmfs-venv-rebase function directly after it (4 lines later).
-    _CVMFS_VENV_REBASE_LINE="$(($(sed -n '\|unset -f cvmfs-venv-rebase|=' "${_venv_name}"/bin/activate) + 4))"
-    ed --silent "$(readlink -f "${_venv_name}"/bin/activate)" <<EOF
-${_CVMFS_VENV_REBASE_LINE}i
-${_CVMFS_VENV_REBASE}
-.
-wq
-EOF
-
-unset _SET_PYTHONPATH
-unset _RECOVER_OLD_PYTHONPATH
-unset _RUN_REBASE
-unset _DESCTRUCTIVE_UNSET
-unset _CVMFS_VENV_REBASE
-
-unset _SET_PYTHONPATH_LINE
-unset _RECOVER_OLD_PYTHONPATH_LINE
-unset _RUN_REBASE_LINE
-unset _DESCTRUCTIVE_UNSET_LINE
-unset _CVMFS_VENV_REBASE_LINE
-
+# unset PYTHONHOME if set
+# this will fail if PYTHONHOME is set to the empty string (which is bad anyway)
+# could use `if (set -u; : $PYTHONHOME) ;` in bash
+if [ -n "\${PYTHONHOME:-}" ] ; then
+    _OLD_VIRTUAL_PYTHONHOME="\${PYTHONHOME:-}"
+    unset PYTHONHOME
+fi
+# Added by https://github.com/matthewfeickert/cvmfs-venv
+if [ -n "\${PYTHONPATH:-}" ] ; then
+    _OLD_VIRTUAL_PYTHONPATH="\${PYTHONPATH:-}"
+    unset PYTHONPATH
+    unset _VIRTUAL_SITE_PACKAGES
+    _VIRTUAL_SITE_PACKAGES="\$(find \${VIRTUAL_ENV}/lib/ -type d -name site-packages)"
+    export PYTHONPATH="\${_VIRTUAL_SITE_PACKAGES}:\${_OLD_VIRTUAL_PYTHONPATH}"
 fi
 
-# Activate the virtual environment
-. "${_venv_name}/bin/activate"
+if [ -z "\${VIRTUAL_ENV_DISABLE_PROMPT:-}" ] ; then
+    _OLD_VIRTUAL_PS1="\${PS1:-}"
+    PS1="(venv) \${PS1:-}"
+    export PS1
+fi
 
-# Get latest pip, setuptools, wheel
-# Hide not-real errors from CVMFS by sending to /dev/null
-python -m pip --quiet install --upgrade pip setuptools wheel &> /dev/null
-
-unset _venv_name
+# This should detect bash and zsh, which have a hash command that must
+# be called to get it to forget past commands.  Without forgetting
+# past commands the $PATH changes we made may not be respected
+if [ -n "\${BASH:-}" -o -n "\${ZSH_VERSION:-}" ] ; then
+    hash -r 2> /dev/null
+fi
+EOF
+}
