@@ -3,24 +3,30 @@
 # Ensure that pip can't install outside a virtual environment
 export PIP_REQUIRE_VIRTUALENV=true
 
-# Check to see if we need to run setupATLAS
-command -v lsetup > /dev/null
-if [ "$?" == "1" ]; then
-    export ATLAS_LOCAL_ROOT_BASE=/cvmfs/atlas.cern.ch/repo/ATLASLocalRootBase
-    # Allows for working with wrappers as well
-    . "${ATLAS_LOCAL_ROOT_BASE}/user/atlasLocalSetup.sh" --quiet || echo "~~~ERROR: setupATLAS failed!~~~"
-fi
+if [ -d "/cvmfs/atlas.cern.ch" ]; then
+    # Check to see if we need to run setupATLAS
+    command -v lsetup > /dev/null
+    if [ "$?" == "1" ]; then
+        export ATLAS_LOCAL_ROOT_BASE=/cvmfs/atlas.cern.ch/repo/ATLASLocalRootBase
+        # Allows for working with wrappers as well
+        . "${ATLAS_LOCAL_ROOT_BASE}/user/atlasLocalSetup.sh" --quiet || echo "~~~ERROR: setupATLAS failed!~~~"
+    fi
 
-# Setup default LCG view
-default_LCG_release="LCG_101"
-default_LCG_platform="x86_64-centos7-gcc10-opt"
-# Check if on a CentOS 8 machine
-if [ "$(python3 -c 'from platform import platform; print("centos-8" in platform())')" == "True" ]; then
+    # Setup default LCG view
     default_LCG_release="LCG_101"
-    default_LCG_platform="x86_64-centos8-gcc11-opt"
+    default_LCG_platform="x86_64-centos7-gcc10-opt"
+    # Check if on a CentOS 8 machine
+    if [ "$(python3 -c 'from platform import platform; print("centos-8" in platform())')" == "True" ]; then
+        default_LCG_release="LCG_101"
+        default_LCG_platform="x86_64-centos8-gcc11-opt"
+    fi
+    printf "\nlsetup 'views %s %s'\n" "${default_LCG_release}" "${default_LCG_platform}"
+    lsetup "views ${default_LCG_release} ${default_LCG_platform}"
+
+elif [ -f "/release_setup.sh" ]; then
+    # If in Linux container
+    . /release_setup.sh
 fi
-printf "\nlsetup 'views %s %s'\n" "${default_LCG_release}" "${default_LCG_platform}"
-lsetup "views ${default_LCG_release} ${default_LCG_platform}"
 
 _venv_name="${1:-venv}"
 if [ ! -d "${_venv_name}" ]; then
