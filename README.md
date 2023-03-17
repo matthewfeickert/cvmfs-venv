@@ -115,7 +115,7 @@ This is done by injecting Bash snippets directly into the `bin/activate` script 
    ```
    vs.
    ```console
-   $ setupATLAS
+   $ setupATLAS -3
    $ lsetup "views LCG_101 x86_64-centos7-gcc10-opt"
    $ . venv/bin/activate
    ```
@@ -127,7 +127,7 @@ This is done by injecting Bash snippets directly into the `bin/activate` script 
    - Example: If you want to use [`rucio`][rucio-site] both inside and outside of the virtual environment you can set it up either before sourcing the `bin/activate` script
 
    ```console
-   $ setupATLAS
+   $ setupATLAS -3
    $ lsetup "views LCG_101 x86_64-centos7-gcc10-opt"
    $ lsetup rucio  # PYTHONPATH is altered by lsetup
    $ command -v rucio  # rucio is found
@@ -140,7 +140,7 @@ This is done by injecting Bash snippets directly into the `bin/activate` script 
    or after, as `cvmfs-venv-rebase` will update path variables and keep the virtual environment's directory trees at the heads.
 
    ```console
-   $ setupATLAS
+   $ setupATLAS -3
    $ lsetup "views LCG_101 x86_64-centos7-gcc10-opt"
    $ . venv/bin/activate
    (venv) $ lsetup rucio  # PYTHONPATH is altered by lsetup
