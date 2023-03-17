@@ -14,7 +14,7 @@ if [ -d "/cvmfs/atlas.cern.ch" ]; then
 
     # Setup default LCG view
     default_LCG_release="LCG_101"
-    default_LCG_platform="x86_64-centos7-gcc10-opt"
+    default_LCG_platform="x86_64-centos7-gcc8-opt"
     # Check if on a CentOS 8 machine
     if [ "$(python3 -c 'from platform import platform; print("centos-8" in platform())')" == "True" ]; then
         default_LCG_release="LCG_101"
