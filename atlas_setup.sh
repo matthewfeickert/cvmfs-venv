@@ -9,7 +9,7 @@ if [ -d "/cvmfs/atlas.cern.ch" ]; then
     if [ "$?" == "1" ]; then
         export ATLAS_LOCAL_ROOT_BASE=/cvmfs/atlas.cern.ch/repo/ATLASLocalRootBase
         # Allows for working with wrappers as well
-        . "${ATLAS_LOCAL_ROOT_BASE}/user/atlasLocalSetup.sh -3" --quiet || echo "~~~ERROR: setupATLAS failed!~~~"
+        . "${ATLAS_LOCAL_ROOT_BASE}/user/atlasLocalSetup.sh" -3 --quiet || echo '~~~ERROR: setupATLAS failed!~~~'
     fi
 
     # Setup default LCG view
