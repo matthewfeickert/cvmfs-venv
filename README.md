@@ -129,7 +129,7 @@ This is done by injecting Bash snippets directly into the `bin/activate` script 
    ```console
    $ setupATLAS -3
    $ lsetup "views LCG_101 x86_64-centos7-gcc10-opt"
-   $ lsetup rucio  # PYTHONPATH is altered by lsetup
+   $ lsetup "rucio -w"  # PYTHONPATH is altered by lsetup
    $ command -v rucio  # rucio is found
    $ . venv/bin/activate
    (venv) $ command -v rucio  # rucio is found
@@ -143,7 +143,7 @@ This is done by injecting Bash snippets directly into the `bin/activate` script 
    $ setupATLAS -3
    $ lsetup "views LCG_101 x86_64-centos7-gcc10-opt"
    $ . venv/bin/activate
-   (venv) $ lsetup rucio  # PYTHONPATH is altered by lsetup
+   (venv) $ lsetup "rucio -w"  # PYTHONPATH is altered by lsetup
    (venv) $ command -v rucio  # rucio is found
    (venv) $ deactivate  # deactivate calls cvmfs-venv-rebase to persist non-venv paths
    $ command -v rucio  # rucio is found
