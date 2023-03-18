@@ -28,8 +28,9 @@ jobs:
     - name: Check runtime information
       run: |
         echo "CWD=$(pwd)"
+        ls -lhtra
         ls -lhtra /github-workspace
-        cp /github-workspace/cvmfs-venv/cvmfs-venv.sh .
+        cp /github-workspace/* .
         echo "ls -lhtra:"
         ls -lhtra
         echo "env:"
