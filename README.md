@@ -20,7 +20,7 @@ $ chmod +x ~/.local/bin/cvmfs-venv
 Source the script to create a Python 3 virtual environment that can coexist with a CVMFS LCG view. The default name is `venv`.
 
 ```console
-$ cvmfs-venv <name of your virtual environment>  # default name is 'venv'
+$ . cvmfs-venv <name of your virtual environment>  # default name is 'venv'
 ```
 
 ### Example
@@ -31,7 +31,7 @@ $ ssh lxplus
 [feickert@lxplus732 ~]$ export PATH=~/.local/bin:"${PATH}"
 [feickert@lxplus732 ~]$ curl -sL https://raw.githubusercontent.com/matthewfeickert/cvmfs-venv/main/cvmfs-venv.sh -o ~/.local/bin/cvmfs-venv
 [feickert@lxplus732 ~]$ chmod +x ~/.local/bin/cvmfs-venv
-[feickert@lxplus732 ~]$ cvmfs-venv example
+[feickert@lxplus732 ~]$ . cvmfs-venv example
 
 lsetup 'views LCG_101 x86_64-centos7-gcc10-opt'
 ************************************************************************
@@ -117,7 +117,7 @@ This is done by injecting Bash snippets directly into the `bin/activate` script 
 * Once the virtual environment is setup and modified there is no additional dependency on the `cvmfs-venv` script that generated it.
    - While it saves time it is not needed. You can setup the environment again without it.
    ```console
-   $ cvmfs-venv venv
+   $ . cvmfs-venv venv
    ```
    vs.
    ```console
