@@ -32,9 +32,9 @@ jobs:
         # ls -lhtra /github-workspace
         echo "ls -lhtra /__w"
         ls -lhtra /__w
-        ls -lhtra /__w/cvmfs-venv
+        ls -lhtra /__w/cvmfs-venv/cvmfs-venv
         # cp /github-workspace/* .
-        cp -r /__w/cvmfs-venv/* .
+        cp -r /__w/cvmfs-venv/cvmfs-venv/* .
         echo "ls -lhtra:"
         ls -lhtra
         echo "env:"
