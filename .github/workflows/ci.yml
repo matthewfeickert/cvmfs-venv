@@ -34,7 +34,7 @@ jobs:
         ls -lhtra /__w
         ls -lhtra /__w/cvmfs-venv/cvmfs-venv
         # cp /github-workspace/* .
-        cp -r /__w/cvmfs-venv/cvmfs-venv/* .
+        cp -r /__w/cvmfs-venv/cvmfs-venv/cvmfs-venv.sh .
         echo "ls -lhtra:"
         ls -lhtra
         echo "env:"
@@ -59,17 +59,23 @@ jobs:
 
     - name: List installed Python packages
       run: |
+        . /release_setup.sh
+        . venv/bin/activate
         python -m pip list
         python -m pip list --local
 
     - name: Update NumPy and install Uproot
       run: |
+        . /release_setup.sh
+        . venv/bin/activate
         python -m pip install --upgrade numpy uproot
         python -m pip list
         python -m pip list --local
 
     - name: Deactivate environment
       run: |
+        . /release_setup.sh
+        . venv/bin/activate
         deactivate
         echo "PATH=${PATH}"
         echo "PYTHONPATH=${PYTHONPATH}"
