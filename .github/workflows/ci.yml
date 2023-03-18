@@ -38,7 +38,7 @@ jobs:
 
     - name: Setup venv using /release_setup.sh
       run: |
-        . cvmfs-venv
+        . cvmfs-venv.sh
         echo "PATH=${PATH}"
         echo "PYTHONPATH=${PYTHONPATH}"
 
