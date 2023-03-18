@@ -62,22 +62,24 @@ Type "help", "copyright", "credits" or "license" for more information.
 >>> exit()
 (example) [feickert@lxplus732 ~]$ python -m pip show awkward  # Get version installed in venv
 Name: awkward
-Version: 1.7.0
+Version: 2.1.0
 Summary: Manipulate JSON-like data with NumPy-like idioms.
-Home-page: https://github.com/scikit-hep/awkward-1.0
-Author: Jim Pivarski
-Author-email: pivarski@princeton.edu
+Home-page:
+Author:
+Author-email: Jim Pivarski <pivarski@princeton.edu>
 License: BSD-3-Clause
 Location: /afs/cern.ch/user/f/feickert/example/lib/python3.9/site-packages
-Requires: numpy, setuptools
+Requires: awkward-cpp, numpy, packaging, typing-extensions
 Required-by:
 (example) [feickert@lxplus732 ~]$ python -m pip list --local  # View of virtual environment controlled packages
-Package    Version
----------- -------
-awkward    1.7.0
-pip        22.0.3
-setuptools 60.9.3
-wheel      0.37.1
+Package           Version
+----------------- -------
+awkward           2.1.0
+awkward-cpp       12
+pip               23.0.1
+setuptools        67.6.0
+typing_extensions 4.5.0
+wheel             0.40.0
 (example) [feickert@lxplus732 ~]$ deactivate  # Resets PYTHONPATH given added hooks
 [feickert@lxplus732 ~]$ python -m pip show awkward  # Get CVMFS's old version
 Name: awkward
