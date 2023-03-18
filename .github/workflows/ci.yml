@@ -15,6 +15,7 @@ jobs:
     defaults:
       run:
         shell: bash
+        working-directory: /workdir
 
     steps:
       # AnalysisBase Git version is too old to use modern checkout action
