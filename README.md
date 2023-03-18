@@ -26,6 +26,7 @@ $ cvmfs-venv <name of your virtual environment>  # default name is 'venv'
 ```console
 $ ssh lxplus
 [feickert@lxplus732 ~]$ curl -sL https://raw.githubusercontent.com/matthewfeickert/cvmfs-venv/main/cvmfs-venv.sh -o cvmfs-venv
+[feickert@lxplus732 ~]$ chmod +x cvmfs-venv
 [feickert@lxplus732 ~]$ ./cvmfs-venv example
 
 lsetup 'views LCG_101 x86_64-centos7-gcc10-opt'
