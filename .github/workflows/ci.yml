@@ -15,7 +15,7 @@ jobs:
       image: gitlab-registry.cern.ch/atlas/athena/analysisbase:22.2.113
       volumes:
         - ${{ github.workspace }}:/github-workspace
-      options: --workdir /workdir
+      # options: --workdir /workdir
     defaults:
       run:
         shell: bash
@@ -30,7 +30,10 @@ jobs:
         echo "CWD=$(pwd)"
         ls -lhtra
         ls -lhtra /github-workspace
-        cp /github-workspace/* .
+        echo "ls -lhtra /__w"
+        ls -lhtra /__w
+        ls -lhtra /__w/cvmfs-venv
+        # cp /github-workspace/* .
         echo "ls -lhtra:"
         ls -lhtra
         echo "env:"
