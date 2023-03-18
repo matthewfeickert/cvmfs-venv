@@ -193,6 +193,8 @@ ${_CVMFS_VENV_REBASE}
 wq
 EOF
 
+unset _venv_full_path
+
 unset _SET_PYTHONPATH
 unset _RECOVER_OLD_PYTHONPATH
 unset _RUN_REBASE
@@ -205,7 +207,6 @@ unset _RUN_REBASE_LINE
 unset _DESCTRUCTIVE_UNSET_LINE
 unset _CVMFS_VENV_REBASE_LINE
 
-unset _venv_full_path
 fi
 
 # Activate the virtual environment
