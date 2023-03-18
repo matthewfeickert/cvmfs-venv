@@ -29,7 +29,7 @@ jobs:
       run: |
         echo "CWD=$(pwd)"
         ls -lhtra
-        ls -lhtra /github-workspace
+        # ls -lhtra /github-workspace
         echo "ls -lhtra /__w"
         ls -lhtra /__w
         ls -lhtra /__w/cvmfs-venv
