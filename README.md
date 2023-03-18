@@ -10,6 +10,7 @@ Either clone the repo to your directory or simply download the relevant files
 
 ```console
 $ curl -sL https://raw.githubusercontent.com/matthewfeickert/cvmfs-venv/main/cvmfs-venv.sh -o cvmfs-venv
+$ chmod +x cvmfs-venv  # Make executable for convenience
 ```
 
 ## Use
