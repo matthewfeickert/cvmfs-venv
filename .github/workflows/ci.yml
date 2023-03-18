@@ -20,6 +20,14 @@ jobs:
       # AnalysisBase Git version is too old to use modern checkout action
     - uses: actions/checkout@v1
 
+    - name: Check runtime information
+      run: |
+        echo "CWD=$(pwd)"
+        echo "env:"
+        env
+        echo "id:"
+        id
+
     - name: Install cvmfs-venv locally
       run: |
         mkdir -p /home/atlas/.local/bin
