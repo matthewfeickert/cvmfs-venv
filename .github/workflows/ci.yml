@@ -19,6 +19,7 @@ jobs:
     defaults:
       run:
         shell: bash
+        working-directory: /workdir
 
     steps:
       # AnalysisBase Git version is too old to use modern checkout action
@@ -27,6 +28,7 @@ jobs:
     - name: Check runtime information
       run: |
         echo "CWD=$(pwd)"
+        ls -lhtra /
         cp /github-workspace/cvmfs-venv.sh .
         echo "ls -lhtra:"
         ls -lhtra
