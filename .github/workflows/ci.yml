@@ -15,10 +15,10 @@ jobs:
       image: gitlab-registry.cern.ch/atlas/athena/analysisbase:22.2.113
       volumes:
         - ${{ github.workspace }}:/workdir
+      options: --workdir /workdir
     defaults:
       run:
         shell: bash
-        working-directory: /workdir
 
     steps:
       # AnalysisBase Git version is too old to use modern checkout action
@@ -27,12 +27,13 @@ jobs:
     - name: Check runtime information
       run: |
         echo "CWD=$(pwd)"
+        echo "ls -lhtra:"
+        ls -lhtra
         echo "env:"
         env
         echo "id:"
         id
         echo 'export PATH=~/.local/bin:"${PATH}"' > ~/.bashrc
-        ls -lhtra
 
     - name: Install cvmfs-venv locally
       run: |
