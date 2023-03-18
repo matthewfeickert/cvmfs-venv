@@ -6,11 +6,13 @@ Example implementation of getting a Python virtual environment to work with CVMF
 
 ## Install
 
-Either clone the repo to your directory or simply download the relevant files
+Either clone the repo to your directory or simply download the relevant files and place on `PATH`
 
 ```console
-$ curl -sL https://raw.githubusercontent.com/matthewfeickert/cvmfs-venv/main/cvmfs-venv.sh -o cvmfs-venv
-$ chmod +x cvmfs-venv  # Make executable for convenience
+$ mkdir -p ~/.local/bin
+$ export PATH=~/.local/bin:"${PATH}"  # If ~/.local/bin not on PATH already
+$ curl -sL https://raw.githubusercontent.com/matthewfeickert/cvmfs-venv/main/cvmfs-venv.sh -o ~/.local/bin/cvmfs-venv
+$ chmod +x ~/.local/bin/cvmfs-venv
 ```
 
 ## Use
@@ -25,9 +27,10 @@ $ cvmfs-venv <name of your virtual environment>  # default name is 'venv'
 
 ```console
 $ ssh lxplus
-[feickert@lxplus732 ~]$ curl -sL https://raw.githubusercontent.com/matthewfeickert/cvmfs-venv/main/cvmfs-venv.sh -o cvmfs-venv
-[feickert@lxplus732 ~]$ chmod +x cvmfs-venv
-[feickert@lxplus732 ~]$ ./cvmfs-venv example
+[feickert@lxplus732 ~]$ mkdir -p ~/.local/bin
+[feickert@lxplus732 ~]$ curl -sL https://raw.githubusercontent.com/matthewfeickert/cvmfs-venv/main/cvmfs-venv.sh -o ~/.local/bin/cvmfs-venv
+[feickert@lxplus732 ~]$ chmod +x ~/.local/bin/cvmfs-venv
+[feickert@lxplus732 ~]$ cvmfs-venv example
 
 lsetup 'views LCG_101 x86_64-centos7-gcc10-opt'
 ************************************************************************
