@@ -208,6 +208,8 @@ unset _CVMFS_VENV_REBASE_LINE
 fi
 
 # Activate the virtual environment
+# DEUBG: REMOVE FOLLOWING LINE
+echo ". ${_venv_full_path}/bin/activate"
 . "${_venv_full_path}/bin/activate"
 
 # Get latest pip, setuptools, wheel
