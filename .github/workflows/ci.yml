@@ -28,15 +28,15 @@ jobs:
     - name: Check runtime information
       run: |
         echo "CWD=$(pwd)"
-        ls -lhtra /
-        cp /github-workspace/cvmfs-venv.sh .
+        ls -lhtra /github-workspace
+        cp /github-workspace/cvmfs-venv/cvmfs-venv.sh .
         echo "ls -lhtra:"
         ls -lhtra
         echo "env:"
         env
         echo "id:"
         id
-        echo 'export PATH=~/.local/bin:"${PATH}"' > ~/.bashrc
+        echo 'export PATH=/home/atlas/.local/bin:"${PATH}"' > /home/atlas/.bashrc
 
     - name: Install cvmfs-venv locally
       run: |
