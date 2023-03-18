@@ -29,9 +29,10 @@ elif [ -f "/release_setup.sh" ]; then
 fi
 
 _venv_name="${1:-venv}"
-if [ ! -d "${_venv_name}" ]; then
+_venv_full_path="$(readlink -f .)/${_venv_name}"
+if [ ! -d "$(readlink -f .)/${_venv_name}" ]; then
     printf "# Creating new Python virtual environment '%s'\n" "${_venv_name}"
-    python3 -m venv "${_venv_name}"
+    python3 -m venv "${_venv_full_path}"
 
     # When setting up the Python virtual environment shell variables in the
     # main section of the <venv>/bin/activate script, copy the pattern used
@@ -207,10 +208,11 @@ unset _CVMFS_VENV_REBASE_LINE
 fi
 
 # Activate the virtual environment
-. "${_venv_name}/bin/activate"
+. "${_venv_full_path}/bin/activate"
 
 # Get latest pip, setuptools, wheel
 # Hide not-real errors from CVMFS by sending to /dev/null
 python -m pip --quiet install --upgrade pip setuptools wheel &> /dev/null
 
 unset _venv_name
+unset _venv_full_path
