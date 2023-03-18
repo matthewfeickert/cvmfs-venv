@@ -28,6 +28,7 @@ $ cvmfs-venv <name of your virtual environment>  # default name is 'venv'
 ```console
 $ ssh lxplus
 [feickert@lxplus732 ~]$ mkdir -p ~/.local/bin
+[feickert@lxplus732 ~]$ export PATH=~/.local/bin:"${PATH}"
 [feickert@lxplus732 ~]$ curl -sL https://raw.githubusercontent.com/matthewfeickert/cvmfs-venv/main/cvmfs-venv.sh -o ~/.local/bin/cvmfs-venv
 [feickert@lxplus732 ~]$ chmod +x ~/.local/bin/cvmfs-venv
 [feickert@lxplus732 ~]$ cvmfs-venv example
