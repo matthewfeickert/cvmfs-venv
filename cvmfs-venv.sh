@@ -29,10 +29,10 @@ elif [ -f "/release_setup.sh" ]; then
 fi
 
 _venv_name="${1:-venv}"
-_venv_full_path="$(readlink -f .)/${_venv_name}"
-if [ ! -d "${_venv_full_path}" ]; then
+if [ ! -d "${_venv_name}" ]; then
     printf "# Creating new Python virtual environment '%s'\n" "${_venv_name}"
-    python3 -m venv "${_venv_full_path}"
+    python3 -m venv "${_venv_name}"
+    _venv_full_path="$(readlink -f ${_venv_name})"
 
     # When setting up the Python virtual environment shell variables in the
     # main section of the <venv>/bin/activate script, copy the pattern used
