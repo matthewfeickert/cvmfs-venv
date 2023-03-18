@@ -12,6 +12,9 @@ jobs:
   test:
     runs-on: ubuntu-latest
     container: gitlab-registry.cern.ch/atlas/athena/analysisbase:22.2.113
+    defaults:
+      run:
+        shell: bash
 
     steps:
       # AnalysisBase Git version is too old to use modern checkout action
@@ -20,7 +23,7 @@ jobs:
     - name: Install cvmfs-venv locally
       run: |
         mkdir -p /home/atlas/.local/bin
-        mv cvmfs-venv.sh /home/atlas/.local/bin/cvmfs-venv
+        cp cvmfs-venv.sh /home/atlas/.local/bin/cvmfs-venv
         export PATH="/home/atlas/.local/bin:${PATH}"
         command -v cvmfs-venv
         echo "${PATH}"
