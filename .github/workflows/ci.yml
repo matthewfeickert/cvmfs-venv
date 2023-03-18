@@ -13,8 +13,8 @@ jobs:
     runs-on: ubuntu-latest
     container:
       image: gitlab-registry.cern.ch/atlas/athena/analysisbase:22.2.113
-      volumes:
-        - ${{ github.workspace }}:/github-workspace
+      # volumes:
+      #  - ${{ github.workspace }}:/github-workspace
       # options: --workdir /workdir
     defaults:
       run:
@@ -34,6 +34,7 @@ jobs:
         ls -lhtra /__w
         ls -lhtra /__w/cvmfs-venv
         # cp /github-workspace/* .
+        cp -r /__w/cvmfs-venv/* .
         echo "ls -lhtra:"
         ls -lhtra
         echo "env:"
