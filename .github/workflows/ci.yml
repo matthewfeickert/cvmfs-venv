@@ -1,0 +1,57 @@
+name: CI
+
+on:
+  push:
+    branches:
+    - main
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+
+  test:
+    runs-on: ubuntu-latest
+    container: gitlab-registry.cern.ch/atlas/athena/analysisbase:22.2.113
+
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Install cvmfs-venv locally
+      run: |
+        mkdir -p ~/.local/bin
+        mv cvmfs-venv.sh ~/.local/bin/
+        export PATH="~/.local/bin:${PATH}"
+        command -v cvmfs-venv
+        echo "${PATH}"
+
+    - name: Setup venv using /release_setup.sh
+      run: |
+        . cvmfs-venv
+        echo "PATH=${PATH}"
+        echo "PYTHONPATH=${PYTHONPATH}"
+
+    - name: List installed Python packages
+      run: |
+        python -m pip list
+        python -m pip list --local
+
+    - name: Update NumPy and install Uproot
+      run: |
+        python -m pip install --upgrade numpy uproot
+        python -m pip list
+        python -m pip list --local
+
+    - name: Deactivate environment
+      run: |
+        deactivate
+        echo "PATH=${PATH}"
+        echo "PYTHONPATH=${PYTHONPATH}"
+        python -m pip list
+
+    - name: Reactivate environment
+      run: |
+        . venv/bin/activate
+        echo "PATH=${PATH}"
+        echo "PYTHONPATH=${PYTHONPATH}"
+        python -m pip list
+        python -m pip list --local
