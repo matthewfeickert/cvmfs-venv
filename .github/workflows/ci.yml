@@ -19,9 +19,9 @@ jobs:
 
     - name: Install cvmfs-venv locally
       run: |
-        mkdir -p ~/.local/bin
-        mv cvmfs-venv.sh ~/.local/bin/
-        export PATH="~/.local/bin:${PATH}"
+        mkdir -p /home/atlas/.local/bin
+        mv cvmfs-venv.sh /home/atlas/.local/bin/cvmfs-venv
+        export PATH="/home/atlas/.local/bin:${PATH}"
         command -v cvmfs-venv
         echo "${PATH}"
 
