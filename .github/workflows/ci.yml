@@ -14,7 +14,7 @@ jobs:
     container:
       image: gitlab-registry.cern.ch/atlas/athena/analysisbase:22.2.113
       volumes:
-        - ${{ github.workspace }}:/workdir
+        - ${{ github.workspace }}:/github-workspace
       options: --workdir /workdir
     defaults:
       run:
@@ -27,6 +27,7 @@ jobs:
     - name: Check runtime information
       run: |
         echo "CWD=$(pwd)"
+        cp /github-workspace/cvmfs-venv.sh .
         echo "ls -lhtra:"
         ls -lhtra
         echo "env:"
