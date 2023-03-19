@@ -52,6 +52,8 @@ jobs:
         mkdir -p ~/.local/bin
         # Need root permissions to set GITHUB_ENV
         echo "PATH=$(readlink -f ~)/.local/bin:${PATH}" >> $GITHUB_ENV
+        echo "env:"
+        env
 
     - name: Install cvmfs-venv locally
       run: |
