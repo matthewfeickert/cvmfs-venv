@@ -59,11 +59,23 @@ jobs:
         cp cvmfs-venv.sh ~/.local/bin/cvmfs-venv
         echo "cvmfs-venv is: $(command -v cvmfs-venv)"
 
-    - name: Setup venv using /release_setup.sh
+    - name: Setup default venv using /release_setup.sh
       run: |
-        . cvmfs-venv ${{ matrix.venv-name }}
+        . cvmfs-venv
+        command -v python
+        python --version --version
         echo "PATH=${PATH}"
         echo "PYTHONPATH=${PYTHONPATH}"
+
+    - name: Remove default venv
+      run: |
+        rm -rf venv
+
+    - name: Setup venv "${{ matrix.venv-name }}" using /release_setup.sh
+      run: |
+        . cvmfs-venv ${{ matrix.venv-name }}
+        command -v python
+        python --version --version
 
     - name: List installed Python packages
       run: |
@@ -115,3 +127,7 @@ jobs:
         python -m pip list
         echo "# python -m pip list --local"
         python -m pip list --local
+
+    - name: Remove venv "${{ matrix.venv-name }}"
+      run: |
+        rm -rf ${{ matrix.venv-name }}
