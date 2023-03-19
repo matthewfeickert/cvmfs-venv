@@ -25,6 +25,8 @@ jobs:
     defaults:
       run:
         shell: bash
+        # container options: --workdir not supported https://github.com/actions/runner/issues/878
+        # so set working-directory instead
         working-directory: /workdir
 
     steps:
@@ -33,7 +35,8 @@ jobs:
 
     - name: Setup directories
       run: |
-        cp -r /__w/cvmfs-venv/cvmfs-venv/cvmfs-venv.sh .
+        # Copy files from the GITHUB_WORKSPACE to the selected working directory
+        cp -r "${GITHUB_WORKSPACE}"/cvmfs-venv.sh .
         # Avoid warnings about cache ownership
         chown --recursive "$(id -u)" ~/
 
@@ -51,6 +54,7 @@ jobs:
     - name: Place ~/.local/bin on PATH
       run: |
         mkdir -p ~/.local/bin
+        # Need root permissions to set GITHUB_ENV
         echo "PATH=$(readlink -f ~)/.local/bin:${PATH}" >> $GITHUB_ENV
 
     - name: Install cvmfs-venv locally
