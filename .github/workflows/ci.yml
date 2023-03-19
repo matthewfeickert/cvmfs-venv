@@ -33,6 +33,7 @@ jobs:
 
     - name: Check runtime information
       run: |
+        echo "USER=${USER}"
         echo "CWD=$(pwd)"
         ls -lhtra
         # ls -lhtra /github-workspace
@@ -53,7 +54,7 @@ jobs:
         mkdir -p ~/.local/bin
         echo "PATH=$(readlink -f ~)/.local/bin:${PATH}" >> $GITHUB_ENV
         # Avoid warnings about cache ownership
-        chown --recursive "${USER}" ~/.cache
+        chown --recursive "${USER}" ~/
 
     - name: Install cvmfs-venv locally
       run: |
