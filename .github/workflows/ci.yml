@@ -108,17 +108,6 @@ jobs:
         echo "# python -m pip list"
         python -m pip list
 
-    - name: Reactivate environment
-      run: |
-        . /release_setup.sh
-        . ${{ matrix.venv-name }}/bin/activate
-        echo "PATH=${PATH}"
-        echo "PYTHONPATH=${PYTHONPATH}"
-        echo "# python -m pip list"
-        python -m pip list
-        echo "# python -m pip list --local"
-        python -m pip list --local
-
     - name: Uninstall NumPy to demonstrate can
       run: |
         . /release_setup.sh
