@@ -101,3 +101,14 @@ jobs:
         python -m pip list
         echo "# python -m pip list --local"
         python -m pip list --local
+
+    - name: Uninstall NumPy to demonstrate can
+      run: |
+        . /release_setup.sh
+        . venv/bin/activate
+        echo "# python -m pip uninstall -y numpy"
+        python -m pip uninstall -y numpy
+        echo "# python -m pip list"
+        python -m pip list
+        echo "# python -m pip list --local"
+        python -m pip list --local
