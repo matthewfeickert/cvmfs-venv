@@ -78,6 +78,8 @@ jobs:
         . cvmfs-venv ${{ matrix.venv-name }}
         echo "# Python runtime: $(command -v python)"
         python --version --version
+        echo "PATH=${PATH}"
+        echo "PYTHONPATH=${PYTHONPATH}"
 
     - name: List installed Python packages
       run: |
@@ -103,6 +105,7 @@ jobs:
       run: |
         . /release_setup.sh
         . ${{ matrix.venv-name }}/bin/activate
+        echo "# deactivate"
         deactivate
         echo "# Python runtime: $(command -v python)"
         echo "PATH=${PATH}"
