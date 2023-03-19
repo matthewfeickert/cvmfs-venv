@@ -43,16 +43,17 @@ jobs:
         env
         echo "id:"
         id
-        echo 'export PATH=/home/atlas/.local/bin:"${PATH}"' > /home/atlas/.bashrc
 
     - name: Place ~/.local/bin on PATH
       run: |
-        mkdir -p /home/atlas/.local/bin
-        echo "PATH=/home/atlas/.local/bin:${PATH}" >> $GITHUB_ENV
+        mkdir -p ~/.local/bin
+        ls -lhtra ~/
+        echo "PATH=~/.local/bin:${PATH}"
+        echo "PATH=~/.local/bin:${PATH}" >> $GITHUB_ENV
 
     - name: Install cvmfs-venv locally
       run: |
-        cp cvmfs-venv.sh /home/atlas/.local/bin/cvmfs-venv
+        cp cvmfs-venv.sh ~/.local/bin/cvmfs-venv
         command -v cvmfs-venv
         echo "${PATH}"
 
@@ -88,6 +89,7 @@ jobs:
 
     - name: Reactivate environment
       run: |
+        . /release_setup.sh
         . venv/bin/activate
         echo "PATH=${PATH}"
         echo "PYTHONPATH=${PYTHONPATH}"
