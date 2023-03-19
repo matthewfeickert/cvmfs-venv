@@ -16,6 +16,7 @@ jobs:
       # volumes:
       #  - ${{ github.workspace }}:/github-workspace
       # options: --workdir /workdir
+      options: --user root
     env:
       HOME: /home/atlas
     defaults:
@@ -47,10 +48,7 @@ jobs:
     - name: Place ~/.local/bin on PATH
       run: |
         mkdir -p ~/.local/bin
-        readlink -f ~
-        echo "PATH=~/.local/bin:${PATH}"
-        echo "${GITHUB_ENV}"
-        echo "PATH=~/.local/bin:${PATH}" >> $GITHUB_ENV
+        echo "PATH=$(readlink -f ~)/.local/bin:${PATH}" >> $GITHUB_ENV
 
     - name: Install cvmfs-venv locally
       run: |
