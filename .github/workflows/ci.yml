@@ -31,17 +31,16 @@ jobs:
       # AnalysisBase Git version is too old to use modern checkout action
     - uses: actions/checkout@v1
 
+    - name: Setup directories
+      run: |
+        cp -r /__w/cvmfs-venv/cvmfs-venv/cvmfs-venv.sh .
+        # Avoid warnings about cache ownership
+        chown --recursive "$(id -u)" ~/
+
     - name: Check runtime information
       run: |
         echo "USER=${USER}"
         echo "CWD=$(pwd)"
-        ls -lhtra
-        # ls -lhtra /github-workspace
-        echo "ls -lhtra /__w"
-        ls -lhtra /__w
-        ls -lhtra /__w/cvmfs-venv/cvmfs-venv
-        # cp /github-workspace/* .
-        cp -r /__w/cvmfs-venv/cvmfs-venv/cvmfs-venv.sh .
         echo "ls -lhtra:"
         ls -lhtra
         echo "env:"
@@ -53,8 +52,6 @@ jobs:
       run: |
         mkdir -p ~/.local/bin
         echo "PATH=$(readlink -f ~)/.local/bin:${PATH}" >> $GITHUB_ENV
-        # Avoid warnings about cache ownership
-        chown --recursive "$(id -u)" ~/
 
     - name: Install cvmfs-venv locally
       run: |
