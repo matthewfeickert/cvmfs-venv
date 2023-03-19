@@ -47,8 +47,9 @@ jobs:
     - name: Place ~/.local/bin on PATH
       run: |
         mkdir -p ~/.local/bin
-        ls -lhtra ~/
+        readlink -f ~
         echo "PATH=~/.local/bin:${PATH}"
+        echo "${GITHUB_ENV}"
         echo "PATH=~/.local/bin:${PATH}" >> $GITHUB_ENV
 
     - name: Install cvmfs-venv locally
