@@ -54,7 +54,7 @@ jobs:
         mkdir -p ~/.local/bin
         echo "PATH=$(readlink -f ~)/.local/bin:${PATH}" >> $GITHUB_ENV
         # Avoid warnings about cache ownership
-        chown --recursive "${USER}" ~/
+        chown --recursive "$(id -u)" ~/
 
     - name: Install cvmfs-venv locally
       run: |
