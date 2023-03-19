@@ -16,11 +16,12 @@ jobs:
       # volumes:
       #  - ${{ github.workspace }}:/github-workspace
       # options: --workdir /workdir
+    env:
+      HOME: /home/atlas
     defaults:
       run:
         shell: bash
         working-directory: /workdir
-        HOME: /home/atlas
 
     steps:
       # AnalysisBase Git version is too old to use modern checkout action
