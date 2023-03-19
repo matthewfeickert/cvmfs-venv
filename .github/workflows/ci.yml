@@ -65,7 +65,7 @@ jobs:
     - name: Setup default venv using /release_setup.sh
       run: |
         . cvmfs-venv
-        command -v python
+        echo "# Python runtime: $(command -v python)"
         python --version --version
         echo "PATH=${PATH}"
         echo "PYTHONPATH=${PYTHONPATH}"
