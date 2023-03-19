@@ -56,7 +56,7 @@ jobs:
     - name: Install cvmfs-venv locally
       run: |
         echo "PATH=${PATH}"
-        cp cvmfs-venv.sh ~/.local/bin/cvmfs-venv
+        mv cvmfs-venv.sh ~/.local/bin/cvmfs-venv
         echo "cvmfs-venv is: $(command -v cvmfs-venv)"
 
     - name: Setup default venv using /release_setup.sh
