@@ -45,11 +45,14 @@ jobs:
         id
         echo 'export PATH=/home/atlas/.local/bin:"${PATH}"' > /home/atlas/.bashrc
 
-    - name: Install cvmfs-venv locally
+    - name: Place ~/.local/bin on PATH
       run: |
         mkdir -p /home/atlas/.local/bin
+        echo "PATH=/home/atlas/.local/bin:${PATH}" >> $GITHUB_ENV
+
+    - name: Install cvmfs-venv locally
+      run: |
         cp cvmfs-venv.sh /home/atlas/.local/bin/cvmfs-venv
-        export PATH="/home/atlas/.local/bin:${PATH}"
         command -v cvmfs-venv
         echo "${PATH}"
 
