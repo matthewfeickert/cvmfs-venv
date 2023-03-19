@@ -74,7 +74,7 @@ jobs:
     - name: Setup venv "${{ matrix.venv-name }}" using /release_setup.sh
       run: |
         . cvmfs-venv ${{ matrix.venv-name }}
-        command -v python
+        echo "# Python runtime: $(command -v python)"
         python --version --version
 
     - name: List installed Python packages
@@ -90,6 +90,7 @@ jobs:
       run: |
         . /release_setup.sh
         . ${{ matrix.venv-name }}/bin/activate
+        echo "# python -m pip install --upgrade numpy uproot"
         python -m pip install --upgrade numpy uproot
         echo "# python -m pip list"
         python -m pip list
@@ -101,6 +102,7 @@ jobs:
         . /release_setup.sh
         . ${{ matrix.venv-name }}/bin/activate
         deactivate
+        echo "# Python runtime: $(command -v python)"
         echo "PATH=${PATH}"
         echo "PYTHONPATH=${PYTHONPATH}"
         echo "# python -m pip list"
