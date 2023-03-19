@@ -16,9 +16,6 @@ jobs:
         venv-name: ["example"]
     container:
       image: gitlab-registry.cern.ch/atlas/athena/analysisbase:22.2.113
-      # volumes:
-      #  - ${{ github.workspace }}:/github-workspace
-      # options: --workdir /workdir
       options: --user root
     env:
       HOME: /home/atlas
@@ -35,6 +32,7 @@ jobs:
 
     - name: Setup directories
       run: |
+        # c.f. https://github.com/actions/runner/issues/2058 for why not using container volumes
         # Copy files from the GITHUB_WORKSPACE to the selected working directory
         cp -r "${GITHUB_WORKSPACE}"/cvmfs-venv.sh .
         # Avoid warnings about cache ownership
@@ -44,8 +42,6 @@ jobs:
       run: |
         echo "USER=${USER}"
         echo "CWD=$(pwd)"
-        echo "ls -lhtra:"
-        ls -lhtra
         echo "env:"
         env
         echo "id:"
