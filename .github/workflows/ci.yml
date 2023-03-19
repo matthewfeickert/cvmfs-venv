@@ -1,0 +1,127 @@
+name: CI
+
+on:
+  push:
+    branches:
+    - main
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        venv-name: ["example"]
+    container:
+      image: gitlab-registry.cern.ch/atlas/athena/analysisbase:22.2.113
+      options: --user root
+    env:
+      HOME: /home/atlas
+    defaults:
+      run:
+        shell: bash
+        # container options: --workdir not supported https://github.com/actions/runner/issues/878
+        # so set working-directory instead
+        working-directory: /workdir
+
+    steps:
+      # AnalysisBase Git version is too old to use modern checkout action
+    - uses: actions/checkout@v1
+
+    - name: Setup directories
+      run: |
+        # c.f. https://github.com/actions/runner/issues/2058 for why not using container volumes
+        # Copy files from the GITHUB_WORKSPACE to the selected working directory
+        cp -r "${GITHUB_WORKSPACE}"/cvmfs-venv.sh .
+        # Avoid warnings about cache ownership
+        chown --recursive "$(id -u)" ~/
+
+    - name: Check runtime information
+      run: |
+        echo "USER=${USER}"
+        echo "CWD=$(pwd)"
+        echo "env:"
+        env
+        echo "id:"
+        id
+
+    - name: Place ~/.local/bin on PATH
+      run: |
+        mkdir -p ~/.local/bin
+        # Need root permissions to set GITHUB_ENV
+        echo "PATH=$(readlink -f ~)/.local/bin:${PATH}" >> $GITHUB_ENV
+
+    - name: Install cvmfs-venv locally
+      run: |
+        echo "PATH=${PATH}"
+        mv cvmfs-venv.sh ~/.local/bin/cvmfs-venv
+        echo "cvmfs-venv is: $(command -v cvmfs-venv)"
+
+    - name: Setup default venv using /release_setup.sh
+      run: |
+        . cvmfs-venv
+        echo "# Python runtime: $(command -v python)"
+        python --version --version
+        echo "PATH=${PATH}"
+        echo "PYTHONPATH=${PYTHONPATH}"
+
+    - name: Remove default venv
+      run: |
+        rm -rf venv
+
+    - name: Setup venv "${{ matrix.venv-name }}" using /release_setup.sh
+      run: |
+        . cvmfs-venv ${{ matrix.venv-name }}
+        echo "# Python runtime: $(command -v python)"
+        python --version --version
+        echo "PATH=${PATH}"
+        echo "PYTHONPATH=${PYTHONPATH}"
+
+    - name: List installed Python packages
+      run: |
+        . /release_setup.sh
+        . ${{ matrix.venv-name }}/bin/activate
+        echo "# python -m pip list"
+        python -m pip list
+        echo "# python -m pip list --local"
+        python -m pip list --local
+
+    - name: Update NumPy and install Uproot
+      run: |
+        . /release_setup.sh
+        . ${{ matrix.venv-name }}/bin/activate
+        echo "# python -m pip install --upgrade numpy uproot"
+        python -m pip install --upgrade numpy uproot
+        echo "# python -m pip list"
+        python -m pip list
+        echo "# python -m pip list --local"
+        python -m pip list --local
+
+    - name: Deactivate environment
+      run: |
+        . /release_setup.sh
+        . ${{ matrix.venv-name }}/bin/activate
+        echo "# deactivate"
+        deactivate
+        echo "# Python runtime: $(command -v python)"
+        echo "PATH=${PATH}"
+        echo "PYTHONPATH=${PYTHONPATH}"
+        echo "# python -m pip list"
+        python -m pip list
+
+    - name: Uninstall NumPy to demonstrate can
+      run: |
+        . /release_setup.sh
+        . ${{ matrix.venv-name }}/bin/activate
+        echo "# python -m pip uninstall -y numpy"
+        python -m pip uninstall -y numpy
+        echo "# python -m pip list"
+        python -m pip list
+        echo "# python -m pip list --local"
+        python -m pip list --local
+
+    - name: Remove venv "${{ matrix.venv-name }}"
+      run: |
+        rm -rf ${{ matrix.venv-name }}
