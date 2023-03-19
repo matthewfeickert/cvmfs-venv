@@ -52,13 +52,13 @@ jobs:
 
     - name: Install cvmfs-venv locally
       run: |
+        echo "PATH=${PATH}"
         cp cvmfs-venv.sh ~/.local/bin/cvmfs-venv
-        command -v cvmfs-venv
-        echo "${PATH}"
+        echo "cvmfs-venv is: $(command -v cvmfs-venv)"
 
     - name: Setup venv using /release_setup.sh
       run: |
-        . cvmfs-venv.sh
+        . cvmfs-venv
         echo "PATH=${PATH}"
         echo "PYTHONPATH=${PYTHONPATH}"
 
@@ -66,7 +66,9 @@ jobs:
       run: |
         . /release_setup.sh
         . venv/bin/activate
+        echo "# python -m pip list"
         python -m pip list
+        echo "# python -m pip list --local"
         python -m pip list --local
 
     - name: Update NumPy and install Uproot
@@ -74,7 +76,9 @@ jobs:
         . /release_setup.sh
         . venv/bin/activate
         python -m pip install --upgrade numpy uproot
+        echo "# python -m pip list"
         python -m pip list
+        echo "# python -m pip list --local"
         python -m pip list --local
 
     - name: Deactivate environment
@@ -84,6 +88,7 @@ jobs:
         deactivate
         echo "PATH=${PATH}"
         echo "PYTHONPATH=${PYTHONPATH}"
+        echo "# python -m pip list"
         python -m pip list
 
     - name: Reactivate environment
@@ -92,5 +97,7 @@ jobs:
         . venv/bin/activate
         echo "PATH=${PATH}"
         echo "PYTHONPATH=${PYTHONPATH}"
+        echo "# python -m pip list"
         python -m pip list
+        echo "# python -m pip list --local"
         python -m pip list --local
