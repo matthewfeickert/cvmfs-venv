@@ -31,14 +31,14 @@ Examples:
         . cvmfs-venv
 
     * Create a Python 3 virtual environment named 'lcg-example' with the Python
-    runtime provided by LCG view 101
+    runtime provided by LCG view 101.
 
         setupATLAS -3
         lsetup 'views LCG_101 x86_64-centos7-gcc10-opt'
         . cvmfs-venv lcg-example
 
     * Create a Python 3 virtual environment named 'alrb-example' with the Python
-    runtime provided by ATLAS AnalysisBase release v22.2.110
+    runtime provided by ATLAS AnalysisBase release v22.2.110.
 
         setupATLAS -3
         asetup AnalysisBase,22.2.110
