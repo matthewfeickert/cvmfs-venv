@@ -33,15 +33,15 @@ Note: cvmfs-venv extends the Python venv module and so requires Python 3.3+.
 
 Examples:
 
-    * Setup LCG view 101 on CentOS7 and create a Python virtual environment
+    * Setup LCG view 102 on CentOS7 and create a Python virtual environment
     named 'lcg-example' using the Python 3.9 runtime it provides.
 
-        . cvmfs-venv --setup "lsetup 'views LCG_101 x86_64-centos7-gcc10-opt'" lcg-example
+        . cvmfs-venv --setup "lsetup 'views LCG_102 x86_64-centos7-gcc11-opt'" lcg-example
 
-    * Setup ATLAS AnalysisBase release v22.2.110 and create a Python virtual
+    * Setup ATLAS AnalysisBase release v22.2.113 and create a Python virtual
     environment named 'alrb-example' using the Python 3.9 runtime it provides.
 
-        . cvmfs-venv --setup 'asetup AnalysisBase,22.2.110' alrb-example
+        . cvmfs-venv --setup 'asetup AnalysisBase,22.2.113' alrb-example
 
     * Create a Python 3 virtual environment named 'venv' with whatever Python
     runtime "$(command -v python3)" evaluates to.
@@ -49,17 +49,17 @@ Examples:
         . cvmfs-venv
 
     * Create a Python 3 virtual environment named 'lcg-example' with the Python
-    runtime provided by LCG view 101.
+    runtime provided by LCG view 102.
 
         setupATLAS -3
-        lsetup 'views LCG_101 x86_64-centos7-gcc10-opt'
+        lsetup 'views LCG_102 x86_64-centos7-gcc11-opt'
         . cvmfs-venv lcg-example
 
     * Create a Python 3 virtual environment named 'alrb-example' with the Python
-    runtime provided by ATLAS AnalysisBase release v22.2.110.
+    runtime provided by ATLAS AnalysisBase release v22.2.113.
 
         setupATLAS -3
-        asetup AnalysisBase,22.2.110
+        asetup AnalysisBase,22.2.113
         . cvmfs-venv alrb-example
 ```
 
@@ -71,30 +71,30 @@ $ ssh lxplus
 [feickert@lxplus732 ~]$ export PATH=~/.local/bin:"${PATH}"
 [feickert@lxplus732 ~]$ curl -sL https://raw.githubusercontent.com/matthewfeickert/cvmfs-venv/main/cvmfs-venv.sh -o ~/.local/bin/cvmfs-venv
 [feickert@lxplus732 ~]$ chmod +x ~/.local/bin/cvmfs-venv
-[feickert@lxplus732 ~]$ . cvmfs-venv --setup "lsetup 'views LCG_101 x86_64-centos7-gcc10-opt'" lcg-example
+[feickert@lxplus732 ~]$ . cvmfs-venv --setup "lsetup 'views LCG_102 x86_64-centos7-gcc11-opt'" lcg-example
 
-lsetup 'views LCG_101 x86_64-centos7-gcc10-opt'
+lsetup 'views LCG_102 x86_64-centos7-gcc11-opt'
 ************************************************************************
 Requested:  views ...
- Setting up views LCG_101:x86_64-centos7-gcc10-opt ...
+ Setting up views LCG_102:x86_64-centos7-gcc11-opt ...
 >>>>>>>>>>>>>>>>>>>>>>>>> Information for user <<<<<<<<<<<<<<<<<<<<<<<<<
 ************************************************************************
 # Creating new Python virtual environment 'lcg-example'
 (lcg-example) [feickert@lxplus732 ~]$ python -m pip show lhapdf  # Still have full LCG view
 Name: LHAPDF
-Version: 6.3.0
-Summary: UNKNOWN
-Home-page: UNKNOWN
-Author: UNKNOWN
-Author-email: UNKNOWN
-License: UNKNOWN
-Location: /cvmfs/sft.cern.ch/lcg/views/LCG_101/x86_64-centos7-gcc10-opt/lib/python3.9/site-packages
+Version: 6.5.1
+Summary: The LHAPDF parton density evaluation library
+Home-page: https://lhapdf.hepforge.org/
+Author: LHAPDF Collaboration
+Author-email: lhapdf-dev@cern.ch
+License: GPLv3
+Location: /cvmfs/sft.cern.ch/lcg/views/LCG_102/x86_64-centos7-gcc11-opt/lib/python3.9/site-packages
 Requires:
 Required-by:
 (lcg-example) [feickert@lxplus732 ~]$ python -m pip install --upgrade awkward  # This will show a false ERROR given CVFMS is in PYTHONPATH
 (lcg-example) [feickert@lxplus732 ~]$ python
-Python 3.9.6 (default, Sep  6 2021, 15:35:00)
-[GCC 10.3.0] on linux
+Python 3.9.12 (main, Jun  7 2022, 16:09:12)
+[GCC 11.2.0] on linux
 Type "help", "copyright", "credits" or "license" for more information.
 >>> import ROOT
 >>> import XRootD
@@ -102,7 +102,7 @@ Type "help", "copyright", "credits" or "license" for more information.
 >>> exit()
 (lcg-example) [feickert@lxplus732 ~]$ python -m pip show awkward  # Get version installed in venv
 Name: awkward
-Version: 2.1.0
+Version: 2.1.1
 Summary: Manipulate JSON-like data with NumPy-like idioms.
 Home-page:
 Author:
@@ -110,11 +110,11 @@ Author-email: Jim Pivarski <pivarski@princeton.edu>
 License: BSD-3-Clause
 Location: /afs/cern.ch/user/f/feickert/lcg-example/lib/python3.9/site-packages
 Requires: awkward-cpp, numpy, packaging, typing-extensions
-Required-by:
+Required-by: coffea
 (lcg-example) [feickert@lxplus732 ~]$ python -m pip list --local  # View of virtual environment controlled packages
 Package           Version
 ----------------- -------
-awkward           2.1.0
+awkward           2.1.1
 awkward-cpp       12
 pip               23.0.1
 setuptools        67.6.0
@@ -123,15 +123,15 @@ wheel             0.40.0
 (lcg-example) [feickert@lxplus732 ~]$ deactivate  # Resets PYTHONPATH given added hooks
 [feickert@lxplus732 ~]$ python -m pip show awkward  # Get CVMFS's old version
 Name: awkward
-Version: 1.0.2
+Version: 1.7.0
 Summary: Manipulate JSON-like data with NumPy-like idioms.
 Home-page: https://github.com/scikit-hep/awkward-1.0
 Author: Jim Pivarski
 Author-email: pivarski@princeton.edu
-License: BSD 3-clause
-Location: /cvmfs/sft.cern.ch/lcg/views/LCG_101/x86_64-centos7-gcc10-opt/lib/python3.9/site-packages
-Requires: setuptools, numpy
-Required-by:
+License: BSD-3-Clause
+Location: /cvmfs/sft.cern.ch/lcg/views/LCG_102/x86_64-centos7-gcc11-opt/lib/python3.9/site-packages
+Requires: numpy, setuptools
+Required-by: coffea
 ```
 
 ## Dependencies
@@ -174,7 +174,7 @@ This is done by injecting Bash snippets directly into the `bin/activate` script 
    vs.
    ```console
    $ setupATLAS -3
-   $ lsetup "views LCG_101 x86_64-centos7-gcc10-opt"
+   $ lsetup "views LCG_102 x86_64-centos7-gcc11-opt"
    $ . venv/bin/activate
    ```
 * As the virtual environment  is **prepended** to `PYTHONPATH` all packages installed in the virtual environment are automatically given higher precedence over existing packages of the same name found in the LCG view.
@@ -186,7 +186,7 @@ This is done by injecting Bash snippets directly into the `bin/activate` script 
 
    ```console
    $ setupATLAS -3
-   $ lsetup "views LCG_101 x86_64-centos7-gcc10-opt"
+   $ lsetup "views LCG_102 x86_64-centos7-gcc11-opt"
    $ lsetup "rucio -w"  # PYTHONPATH is altered by lsetup
    $ command -v rucio  # rucio is found
    $ . venv/bin/activate
@@ -199,7 +199,7 @@ This is done by injecting Bash snippets directly into the `bin/activate` script 
 
    ```console
    $ setupATLAS -3
-   $ lsetup "views LCG_101 x86_64-centos7-gcc10-opt"
+   $ lsetup "views LCG_102 x86_64-centos7-gcc11-opt"
    $ . venv/bin/activate
    (venv) $ lsetup "rucio -w"  # PYTHONPATH is altered by lsetup
    (venv) $ command -v rucio  # rucio is found
