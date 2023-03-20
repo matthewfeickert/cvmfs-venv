@@ -31,7 +31,7 @@ $ ssh lxplus
 [feickert@lxplus732 ~]$ export PATH=~/.local/bin:"${PATH}"
 [feickert@lxplus732 ~]$ curl -sL https://raw.githubusercontent.com/matthewfeickert/cvmfs-venv/main/cvmfs-venv.sh -o ~/.local/bin/cvmfs-venv
 [feickert@lxplus732 ~]$ chmod +x ~/.local/bin/cvmfs-venv
-[feickert@lxplus732 ~]$ . cvmfs-venv example
+[feickert@lxplus732 ~]$ . cvmfs-venv --setup "lsetup 'views LCG_101 x86_64-centos7-gcc10-opt'" lcg-example
 
 lsetup 'views LCG_101 x86_64-centos7-gcc10-opt'
 ************************************************************************
@@ -39,8 +39,8 @@ Requested:  views ...
  Setting up views LCG_101:x86_64-centos7-gcc10-opt ...
 >>>>>>>>>>>>>>>>>>>>>>>>> Information for user <<<<<<<<<<<<<<<<<<<<<<<<<
 ************************************************************************
-# Creating new Python virtual environment 'example'
-(example) [feickert@lxplus732 ~]$ python -m pip show lhapdf  # Still have full LCG view
+# Creating new Python virtual environment 'lcg-example'
+(lcg-example) [feickert@lxplus732 ~]$ python -m pip show lhapdf  # Still have full LCG view
 Name: LHAPDF
 Version: 6.3.0
 Summary: UNKNOWN
@@ -51,8 +51,8 @@ License: UNKNOWN
 Location: /cvmfs/sft.cern.ch/lcg/views/LCG_101/x86_64-centos7-gcc10-opt/lib/python3.9/site-packages
 Requires:
 Required-by:
-(example) [feickert@lxplus732 ~]$ python -m pip install --upgrade awkward  # This will show a false ERROR given CVFMS is in PYTHONPATH
-(example) [feickert@lxplus732 ~]$ python
+(lcg-example) [feickert@lxplus732 ~]$ python -m pip install --upgrade awkward  # This will show a false ERROR given CVFMS is in PYTHONPATH
+(lcg-example) [feickert@lxplus732 ~]$ python
 Python 3.9.6 (default, Sep  6 2021, 15:35:00)
 [GCC 10.3.0] on linux
 Type "help", "copyright", "credits" or "license" for more information.
@@ -60,7 +60,7 @@ Type "help", "copyright", "credits" or "license" for more information.
 >>> import XRootD
 >>> import awkward
 >>> exit()
-(example) [feickert@lxplus732 ~]$ python -m pip show awkward  # Get version installed in venv
+(lcg-example) [feickert@lxplus732 ~]$ python -m pip show awkward  # Get version installed in venv
 Name: awkward
 Version: 2.1.0
 Summary: Manipulate JSON-like data with NumPy-like idioms.
@@ -68,10 +68,10 @@ Home-page:
 Author:
 Author-email: Jim Pivarski <pivarski@princeton.edu>
 License: BSD-3-Clause
-Location: /afs/cern.ch/user/f/feickert/example/lib/python3.9/site-packages
+Location: /afs/cern.ch/user/f/feickert/lcg-example/lib/python3.9/site-packages
 Requires: awkward-cpp, numpy, packaging, typing-extensions
 Required-by:
-(example) [feickert@lxplus732 ~]$ python -m pip list --local  # View of virtual environment controlled packages
+(lcg-example) [feickert@lxplus732 ~]$ python -m pip list --local  # View of virtual environment controlled packages
 Package           Version
 ----------------- -------
 awkward           2.1.0
@@ -80,7 +80,7 @@ pip               23.0.1
 setuptools        67.6.0
 typing_extensions 4.5.0
 wheel             0.40.0
-(example) [feickert@lxplus732 ~]$ deactivate  # Resets PYTHONPATH given added hooks
+(lcg-example) [feickert@lxplus732 ~]$ deactivate  # Resets PYTHONPATH given added hooks
 [feickert@lxplus732 ~]$ python -m pip show awkward  # Get CVMFS's old version
 Name: awkward
 Version: 1.0.2
