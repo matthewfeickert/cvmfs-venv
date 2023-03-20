@@ -59,6 +59,7 @@ jobs:
         echo "PATH=${PATH}"
         mv cvmfs-venv.sh ~/.local/bin/cvmfs-venv
         echo "cvmfs-venv is: $(command -v cvmfs-venv)"
+        . cvmfs-venv --help
 
     - name: Setup default venv using /release_setup.sh
       run: |
