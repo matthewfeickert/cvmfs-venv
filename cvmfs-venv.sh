@@ -39,7 +39,8 @@ while [ $# -gt 0 ]; do
     case "${1}" in
         -h|--help)
             _help_options
-            exit 0
+            _return_break=0
+            break
             ;;
         -s|--setup)
             _setup_command="${2}"
@@ -58,10 +59,14 @@ while [ $# -gt 0 ]; do
                 fi
             fi
             echo "ERROR: Invalid option '${1}'"
-            exit 1
+            _return_break=1
+            break
             ;;
     esac
 done
+
+# FIXME: Find smarter way to filter guard virtual environment creation
+if [ -z "${_return_break}" ]; then
 
 if [ ! -z "${_setup_command}" ]; then
     if [ -f "/release_setup.sh" ]; then
@@ -299,3 +304,5 @@ fi
 python -m pip --quiet install --upgrade pip setuptools wheel &> /dev/null
 
 unset _venv_name
+
+fi  # _return_break if statement end
