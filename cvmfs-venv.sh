@@ -125,6 +125,7 @@ if [ ! -z "${_setup_command}" ]; then
 elif [ -f "/release_setup.sh" ]; then
     echo "WARNING: /release_setup.sh exists and it is assumed you are in a Linux container."
     echo "         Setting up environment with '. /release_setup.sh'."
+    printf "\n. /release_setup.sh\n"
     . /release_setup.sh
 fi
 
