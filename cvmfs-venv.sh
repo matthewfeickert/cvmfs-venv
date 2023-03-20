@@ -35,6 +35,8 @@ EOF
 }
 
 # CLI API
+# N.B.: _return_break NEEDS to be unset before anything can be run
+unset _return_break
 while [ $# -gt 0 ]; do
     case "${1}" in
         -h|--help)
@@ -306,3 +308,5 @@ python -m pip --quiet install --upgrade pip setuptools wheel &> /dev/null
 unset _venv_name
 
 fi  # _return_break if statement end
+
+unset _return_break
