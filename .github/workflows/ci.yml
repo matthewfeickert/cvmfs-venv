@@ -127,3 +127,13 @@ jobs:
     - name: Remove venv "${{ matrix.venv-name }}"
       run: |
         rm -rf ${{ matrix.venv-name }}
+
+    - name: Setup default venv with --no-update option
+      run: |
+        . cvmfs-venv --no-update
+        echo "# Python runtime: $(command -v python)"
+        python --version --version
+        echo "# python -m pip list"
+        python -m pip list
+        echo "# python -m pip list --local"
+        python -m pip list --local
