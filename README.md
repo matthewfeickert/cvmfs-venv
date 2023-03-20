@@ -217,6 +217,20 @@ This can result in packages from the LCG view meeting requirements of other depe
 * Having all of the environment manipulation happen inside of the `venv`'s `bin/activate` script means that the virtual environment needs to be activated after any LCG view or ATLAS software (which make `PYTHONPATH` not empty) to trigger `PYTHONPATH` manipulation.
 This essentially means that the virtual environment must not be activated first in any setup script.
 
+## Citation
+
+The preferred BibTeX entry for citation of `cvmfs-venv` is
+
+```
+@software{cvmfs-venv,
+  author = {Matthew Feickert},
+  title = "{cvmfs-venv: v0.0.1}",
+  version = {0.0.1},
+  url = {https://github.com/matthewfeickert/cvmfs-venv/},
+  note = {https://github.com/matthewfeickert/cvmfs-venv/releases/tag/v0.0.1}
+}
+```
+
 [PYTHONHOME docs]: https://docs.python.org/3/using/cmdline.html#envvar-PYTHONHOME
 [PYTHONPATH docs]: https://docs.python.org/3/using/cmdline.html#envvar-PYTHONPATH
 [venv docs]: https://docs.python.org/3/tutorial/venv.html
