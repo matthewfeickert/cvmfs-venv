@@ -141,6 +141,7 @@ Required-by: coffea
 A full listing of all programs used outside of Bash shell builtins are:
 * `cat`
 * `ed`
+* `find`
 * `sed`
 * Python 3.3+ with `pip`
 
