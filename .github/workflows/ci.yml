@@ -13,7 +13,8 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        venv-name: ["example"]
+        venv-name: ["example", "name-with-hyphens"]
+        setup-command: [". /release_setup.sh", "lsetup 'views LCG_101 x86_64-centos7-gcc10-opt'"]
     container:
       image: gitlab-registry.cern.ch/atlas/athena/analysisbase:22.2.113
       options: --user root
@@ -58,6 +59,7 @@ jobs:
         echo "PATH=${PATH}"
         mv cvmfs-venv.sh ~/.local/bin/cvmfs-venv
         echo "cvmfs-venv is: $(command -v cvmfs-venv)"
+        . cvmfs-venv --help
 
     - name: Setup default venv using /release_setup.sh
       run: |
@@ -73,7 +75,7 @@ jobs:
 
     - name: Setup venv "${{ matrix.venv-name }}" using /release_setup.sh
       run: |
-        . cvmfs-venv ${{ matrix.venv-name }}
+        . cvmfs-venv --setup "${{ matrix.setup-command }}" ${{ matrix.venv-name }}
         echo "# Python runtime: $(command -v python)"
         python --version --version
         echo "PATH=${PATH}"

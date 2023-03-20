@@ -20,10 +20,48 @@ $ chmod +x ~/.local/bin/cvmfs-venv
 Source the script to create a Python 3 virtual environment that can coexist with a CVMFS LCG view. The default name is `venv`.
 
 ```console
-$ . cvmfs-venv <name of your virtual environment>  # default name is 'venv'
+$ . cvmfs-venv --help
+Usage: cvmfs-venv [-s|--setup] <virtual environment name>
+
+Options:
+ -h --help      Print this help message
+ -s --setup     String of setup options to be parsed
+
+Note: cvmfs-venv extends the Python venv module and so requires Python 3.3+.
+
+Examples:
+
+    * Setup LCG view 101 on CentOS7 and create a Python virtual environment
+    named 'lcg-example' using the Python 3.9 runtime it provides.
+
+        . cvmfs-venv --setup "lsetup 'views LCG_101 x86_64-centos7-gcc10-opt'" lcg-example
+
+    * Setup ATLAS AnalysisBase release v22.2.110 and create a Python virtual
+    environment named 'alrb-example' using the Python 3.9 runtime it provides.
+
+        . cvmfs-venv --setup 'asetup AnalysisBase,22.2.110' alrb-example
+
+    * Create a Python 3 virtual environment named 'venv' with whatever Python
+    runtime "$(command -v python3)" evaluates to.
+
+        . cvmfs-venv
+
+    * Create a Python 3 virtual environment named 'lcg-example' with the Python
+    runtime provided by LCG view 101
+
+        setupATLAS -3
+        lsetup 'views LCG_101 x86_64-centos7-gcc10-opt'
+        . cvmfs-venv lcg-example
+
+    * Create a Python 3 virtual environment named 'alrb-example' with the Python
+    runtime provided by ATLAS AnalysisBase release v22.2.110
+
+        setupATLAS -3
+        asetup AnalysisBase,22.2.110
+        . cvmfs-venv alrb-example
 ```
 
-### Example
+### Example: Virtual environment with LCG view
 
 ```console
 $ ssh lxplus
@@ -31,7 +69,7 @@ $ ssh lxplus
 [feickert@lxplus732 ~]$ export PATH=~/.local/bin:"${PATH}"
 [feickert@lxplus732 ~]$ curl -sL https://raw.githubusercontent.com/matthewfeickert/cvmfs-venv/main/cvmfs-venv.sh -o ~/.local/bin/cvmfs-venv
 [feickert@lxplus732 ~]$ chmod +x ~/.local/bin/cvmfs-venv
-[feickert@lxplus732 ~]$ . cvmfs-venv example
+[feickert@lxplus732 ~]$ . cvmfs-venv --setup "lsetup 'views LCG_101 x86_64-centos7-gcc10-opt'" lcg-example
 
 lsetup 'views LCG_101 x86_64-centos7-gcc10-opt'
 ************************************************************************
@@ -39,8 +77,8 @@ Requested:  views ...
  Setting up views LCG_101:x86_64-centos7-gcc10-opt ...
 >>>>>>>>>>>>>>>>>>>>>>>>> Information for user <<<<<<<<<<<<<<<<<<<<<<<<<
 ************************************************************************
-# Creating new Python virtual environment 'example'
-(example) [feickert@lxplus732 ~]$ python -m pip show lhapdf  # Still have full LCG view
+# Creating new Python virtual environment 'lcg-example'
+(lcg-example) [feickert@lxplus732 ~]$ python -m pip show lhapdf  # Still have full LCG view
 Name: LHAPDF
 Version: 6.3.0
 Summary: UNKNOWN
@@ -51,8 +89,8 @@ License: UNKNOWN
 Location: /cvmfs/sft.cern.ch/lcg/views/LCG_101/x86_64-centos7-gcc10-opt/lib/python3.9/site-packages
 Requires:
 Required-by:
-(example) [feickert@lxplus732 ~]$ python -m pip install --upgrade awkward  # This will show a false ERROR given CVFMS is in PYTHONPATH
-(example) [feickert@lxplus732 ~]$ python
+(lcg-example) [feickert@lxplus732 ~]$ python -m pip install --upgrade awkward  # This will show a false ERROR given CVFMS is in PYTHONPATH
+(lcg-example) [feickert@lxplus732 ~]$ python
 Python 3.9.6 (default, Sep  6 2021, 15:35:00)
 [GCC 10.3.0] on linux
 Type "help", "copyright", "credits" or "license" for more information.
@@ -60,7 +98,7 @@ Type "help", "copyright", "credits" or "license" for more information.
 >>> import XRootD
 >>> import awkward
 >>> exit()
-(example) [feickert@lxplus732 ~]$ python -m pip show awkward  # Get version installed in venv
+(lcg-example) [feickert@lxplus732 ~]$ python -m pip show awkward  # Get version installed in venv
 Name: awkward
 Version: 2.1.0
 Summary: Manipulate JSON-like data with NumPy-like idioms.
@@ -68,10 +106,10 @@ Home-page:
 Author:
 Author-email: Jim Pivarski <pivarski@princeton.edu>
 License: BSD-3-Clause
-Location: /afs/cern.ch/user/f/feickert/example/lib/python3.9/site-packages
+Location: /afs/cern.ch/user/f/feickert/lcg-example/lib/python3.9/site-packages
 Requires: awkward-cpp, numpy, packaging, typing-extensions
 Required-by:
-(example) [feickert@lxplus732 ~]$ python -m pip list --local  # View of virtual environment controlled packages
+(lcg-example) [feickert@lxplus732 ~]$ python -m pip list --local  # View of virtual environment controlled packages
 Package           Version
 ----------------- -------
 awkward           2.1.0
@@ -80,7 +118,7 @@ pip               23.0.1
 setuptools        67.6.0
 typing_extensions 4.5.0
 wheel             0.40.0
-(example) [feickert@lxplus732 ~]$ deactivate  # Resets PYTHONPATH given added hooks
+(lcg-example) [feickert@lxplus732 ~]$ deactivate  # Resets PYTHONPATH given added hooks
 [feickert@lxplus732 ~]$ python -m pip show awkward  # Get CVMFS's old version
 Name: awkward
 Version: 1.0.2
