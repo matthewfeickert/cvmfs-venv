@@ -1,6 +1,6 @@
 # cvmfs-venv
 
-Example implementation of getting a Python virtual environment to work with CVMFS [LCG views][LCG_info]. This is done by adding additional hooks to the Python virtual environment's `bin/activate` script.
+Simple command line utility for getting a Python virtual environment to work with CVMFS [LCG views][LCG_info]. This is done by adding additional hooks to the Python virtual environment's `bin/activate` script.
 
 [LCG_info]: https://lcginfo.cern.ch/
 
@@ -131,6 +131,16 @@ Location: /cvmfs/sft.cern.ch/lcg/views/LCG_101/x86_64-centos7-gcc10-opt/lib/pyth
 Requires: setuptools, numpy
 Required-by:
 ```
+
+## Dependencies
+
+`cvmfs-venv` has no dependencies beyond the ones it aims to extend: A Linux operating system that has CVMFS installed on it with a Python 3.3+ runtime with a functioning [`venv` module][venv docs].
+
+A full listing of all programs used outside of Bash shell builtins are:
+* `cat`
+* `ed`
+* `sed`
+* Python 3.3+ with `pip`
 
 ## Why is this needed?
 
