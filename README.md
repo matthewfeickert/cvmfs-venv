@@ -1,6 +1,6 @@
 # cvmfs-venv
 
-Example implementation of getting a Python virtual environment to work with CVMFS [LCG views][LCG_info]. This is done by adding additional hooks to the Python virtual environment's `bin/activate` script.
+Simple command line utility for getting a Python virtual environment to work with CVMFS [LCG views][LCG_info]. This is done by adding additional hooks to the Python virtual environment's `bin/activate` script.
 
 [LCG_info]: https://lcginfo.cern.ch/
 
