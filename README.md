@@ -82,19 +82,19 @@ Requested:  views ...
 # Creating new Python virtual environment 'lcg-example'
 (lcg-example) [feickert@lxplus732 ~]$ python -m pip show lhapdf  # Still have full LCG view
 Name: LHAPDF
-Version: 6.3.0
-Summary: UNKNOWN
-Home-page: UNKNOWN
-Author: UNKNOWN
-Author-email: UNKNOWN
-License: UNKNOWN
+Version: 6.5.1
+Summary: The LHAPDF parton density evaluation library
+Home-page: https://lhapdf.hepforge.org/
+Author: LHAPDF Collaboration
+Author-email: lhapdf-dev@cern.ch
+License: GPLv3
 Location: /cvmfs/sft.cern.ch/lcg/views/LCG_102/x86_64-centos7-gcc11-opt/lib/python3.9/site-packages
 Requires:
 Required-by:
 (lcg-example) [feickert@lxplus732 ~]$ python -m pip install --upgrade awkward  # This will show a false ERROR given CVFMS is in PYTHONPATH
 (lcg-example) [feickert@lxplus732 ~]$ python
-Python 3.9.6 (default, Sep  6 2021, 15:35:00)
-[GCC 10.3.0] on linux
+Python 3.9.12 (main, Jun  7 2022, 16:09:12)
+[GCC 11.2.0] on linux
 Type "help", "copyright", "credits" or "license" for more information.
 >>> import ROOT
 >>> import XRootD
@@ -102,7 +102,7 @@ Type "help", "copyright", "credits" or "license" for more information.
 >>> exit()
 (lcg-example) [feickert@lxplus732 ~]$ python -m pip show awkward  # Get version installed in venv
 Name: awkward
-Version: 2.1.0
+Version: 2.1.1
 Summary: Manipulate JSON-like data with NumPy-like idioms.
 Home-page:
 Author:
@@ -110,11 +110,11 @@ Author-email: Jim Pivarski <pivarski@princeton.edu>
 License: BSD-3-Clause
 Location: /afs/cern.ch/user/f/feickert/lcg-example/lib/python3.9/site-packages
 Requires: awkward-cpp, numpy, packaging, typing-extensions
-Required-by:
+Required-by: coffea
 (lcg-example) [feickert@lxplus732 ~]$ python -m pip list --local  # View of virtual environment controlled packages
 Package           Version
 ----------------- -------
-awkward           2.1.0
+awkward           2.1.1
 awkward-cpp       12
 pip               23.0.1
 setuptools        67.6.0
@@ -123,15 +123,15 @@ wheel             0.40.0
 (lcg-example) [feickert@lxplus732 ~]$ deactivate  # Resets PYTHONPATH given added hooks
 [feickert@lxplus732 ~]$ python -m pip show awkward  # Get CVMFS's old version
 Name: awkward
-Version: 1.0.2
+Version: 1.7.0
 Summary: Manipulate JSON-like data with NumPy-like idioms.
 Home-page: https://github.com/scikit-hep/awkward-1.0
 Author: Jim Pivarski
 Author-email: pivarski@princeton.edu
-License: BSD 3-clause
+License: BSD-3-Clause
 Location: /cvmfs/sft.cern.ch/lcg/views/LCG_102/x86_64-centos7-gcc11-opt/lib/python3.9/site-packages
-Requires: setuptools, numpy
-Required-by:
+Requires: numpy, setuptools
+Required-by: coffea
 ```
 
 ## Dependencies
