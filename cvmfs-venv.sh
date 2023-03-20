@@ -36,10 +36,6 @@ EOF
 
 # CLI API
 while [ $# -gt 0 ]; do
-    if [ $# -eq 1 ]; then
-        # this is the venv's name
-        break
-    fi
     case "${1}" in
         -h|--help)
             _help_options
@@ -54,6 +50,10 @@ while [ $# -gt 0 ]; do
             break
             ;;
         *)
+            if [ $# -eq 1 ]; then
+                # this is the venv's name
+                break
+            fi
             echo "ERROR: Invalid option '${1}'"
             exit 1
             ;;
