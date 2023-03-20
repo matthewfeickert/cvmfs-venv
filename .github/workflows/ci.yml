@@ -13,7 +13,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        venv-name: ["example"]
+        venv-name: ["example", "name-with-hyphens"]
     container:
       image: gitlab-registry.cern.ch/atlas/athena/analysisbase:22.2.113
       options: --user root
