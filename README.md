@@ -33,10 +33,10 @@ Note: cvmfs-venv extends the Python venv module and so requires Python 3.3+.
 
 Examples:
 
-    * Setup LCG view 101 on CentOS7 and create a Python virtual environment
+    * Setup LCG view 102 on CentOS7 and create a Python virtual environment
     named 'lcg-example' using the Python 3.9 runtime it provides.
 
-        . cvmfs-venv --setup "lsetup 'views LCG_101 x86_64-centos7-gcc10-opt'" lcg-example
+        . cvmfs-venv --setup "lsetup 'views LCG_102 x86_64-centos7-gcc11-opt'" lcg-example
 
     * Setup ATLAS AnalysisBase release v22.2.110 and create a Python virtual
     environment named 'alrb-example' using the Python 3.9 runtime it provides.
@@ -49,10 +49,10 @@ Examples:
         . cvmfs-venv
 
     * Create a Python 3 virtual environment named 'lcg-example' with the Python
-    runtime provided by LCG view 101.
+    runtime provided by LCG view 102.
 
         setupATLAS -3
-        lsetup 'views LCG_101 x86_64-centos7-gcc10-opt'
+        lsetup 'views LCG_102 x86_64-centos7-gcc11-opt'
         . cvmfs-venv lcg-example
 
     * Create a Python 3 virtual environment named 'alrb-example' with the Python
@@ -71,12 +71,12 @@ $ ssh lxplus
 [feickert@lxplus732 ~]$ export PATH=~/.local/bin:"${PATH}"
 [feickert@lxplus732 ~]$ curl -sL https://raw.githubusercontent.com/matthewfeickert/cvmfs-venv/main/cvmfs-venv.sh -o ~/.local/bin/cvmfs-venv
 [feickert@lxplus732 ~]$ chmod +x ~/.local/bin/cvmfs-venv
-[feickert@lxplus732 ~]$ . cvmfs-venv --setup "lsetup 'views LCG_101 x86_64-centos7-gcc10-opt'" lcg-example
+[feickert@lxplus732 ~]$ . cvmfs-venv --setup "lsetup 'views LCG_102 x86_64-centos7-gcc11-opt'" lcg-example
 
-lsetup 'views LCG_101 x86_64-centos7-gcc10-opt'
+lsetup 'views LCG_102 x86_64-centos7-gcc11-opt'
 ************************************************************************
 Requested:  views ...
- Setting up views LCG_101:x86_64-centos7-gcc10-opt ...
+ Setting up views LCG_102:x86_64-centos7-gcc11-opt ...
 >>>>>>>>>>>>>>>>>>>>>>>>> Information for user <<<<<<<<<<<<<<<<<<<<<<<<<
 ************************************************************************
 # Creating new Python virtual environment 'lcg-example'
@@ -88,7 +88,7 @@ Home-page: UNKNOWN
 Author: UNKNOWN
 Author-email: UNKNOWN
 License: UNKNOWN
-Location: /cvmfs/sft.cern.ch/lcg/views/LCG_101/x86_64-centos7-gcc10-opt/lib/python3.9/site-packages
+Location: /cvmfs/sft.cern.ch/lcg/views/LCG_102/x86_64-centos7-gcc11-opt/lib/python3.9/site-packages
 Requires:
 Required-by:
 (lcg-example) [feickert@lxplus732 ~]$ python -m pip install --upgrade awkward  # This will show a false ERROR given CVFMS is in PYTHONPATH
@@ -129,7 +129,7 @@ Home-page: https://github.com/scikit-hep/awkward-1.0
 Author: Jim Pivarski
 Author-email: pivarski@princeton.edu
 License: BSD 3-clause
-Location: /cvmfs/sft.cern.ch/lcg/views/LCG_101/x86_64-centos7-gcc10-opt/lib/python3.9/site-packages
+Location: /cvmfs/sft.cern.ch/lcg/views/LCG_102/x86_64-centos7-gcc11-opt/lib/python3.9/site-packages
 Requires: setuptools, numpy
 Required-by:
 ```
@@ -174,7 +174,7 @@ This is done by injecting Bash snippets directly into the `bin/activate` script 
    vs.
    ```console
    $ setupATLAS -3
-   $ lsetup "views LCG_101 x86_64-centos7-gcc10-opt"
+   $ lsetup "views LCG_102 x86_64-centos7-gcc11-opt"
    $ . venv/bin/activate
    ```
 * As the virtual environment  is **prepended** to `PYTHONPATH` all packages installed in the virtual environment are automatically given higher precedence over existing packages of the same name found in the LCG view.
@@ -186,7 +186,7 @@ This is done by injecting Bash snippets directly into the `bin/activate` script 
 
    ```console
    $ setupATLAS -3
-   $ lsetup "views LCG_101 x86_64-centos7-gcc10-opt"
+   $ lsetup "views LCG_102 x86_64-centos7-gcc11-opt"
    $ lsetup "rucio -w"  # PYTHONPATH is altered by lsetup
    $ command -v rucio  # rucio is found
    $ . venv/bin/activate
@@ -199,7 +199,7 @@ This is done by injecting Bash snippets directly into the `bin/activate` script 
 
    ```console
    $ setupATLAS -3
-   $ lsetup "views LCG_101 x86_64-centos7-gcc10-opt"
+   $ lsetup "views LCG_102 x86_64-centos7-gcc11-opt"
    $ . venv/bin/activate
    (venv) $ lsetup "rucio -w"  # PYTHONPATH is altered by lsetup
    (venv) $ command -v rucio  # rucio is found

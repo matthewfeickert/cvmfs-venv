@@ -15,10 +15,10 @@ Note: cvmfs-venv extends the Python venv module and so requires Python 3.3+.
 
 Examples:
 
-    * Setup LCG view 101 on CentOS7 and create a Python virtual environment
+    * Setup LCG view 102 on CentOS7 and create a Python virtual environment
     named 'lcg-example' using the Python 3.9 runtime it provides.
 
-        . cvmfs-venv --setup "lsetup 'views LCG_101 x86_64-centos7-gcc10-opt'" lcg-example
+        . cvmfs-venv --setup "lsetup 'views LCG_102 x86_64-centos7-gcc11-opt'" lcg-example
 
     * Setup ATLAS AnalysisBase release v22.2.110 and create a Python virtual
     environment named 'alrb-example' using the Python 3.9 runtime it provides.
@@ -31,10 +31,10 @@ Examples:
         . cvmfs-venv
 
     * Create a Python 3 virtual environment named 'lcg-example' with the Python
-    runtime provided by LCG view 101.
+    runtime provided by LCG view 102.
 
         setupATLAS -3
-        lsetup 'views LCG_101 x86_64-centos7-gcc10-opt'
+        lsetup 'views LCG_102 x86_64-centos7-gcc11-opt'
         . cvmfs-venv lcg-example
 
     * Create a Python 3 virtual environment named 'alrb-example' with the Python
