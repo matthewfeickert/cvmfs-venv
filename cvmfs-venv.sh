@@ -52,8 +52,8 @@ while [ $# -gt 0 ]; do
             ;;
         *)
             if [ $# -eq 1 ]; then
-                # '-' also covers '--'
-                if [[ "${1}" != *"-"* ]]; then
+                #FIXME: Needs better guard
+                if [[ "${1}" != *"--"* ]]; then
                     # this is the venv's name
                     break
                 fi
