@@ -4,7 +4,7 @@
 export PIP_REQUIRE_VIRTUALENV=true
 
 _help_options () {
-  cat <<EOF
+    cat <<EOF
 Usage: cvmfs-venv [-s|--setup] <virtual environment name>
 
 Options:
@@ -13,22 +13,36 @@ Options:
 
 Note: cvmfs-venv extends the Python venv module and so requires Python 3.3+.
 
-Example:
+Examples:
 
-    Setup LCG view 101 on CentOS7 and create a Python virtual environment named
-    'lgc-example' using the Python 3.9 runtime it provides.
+    * Setup LCG view 101 on CentOS7 and create a Python virtual environment
+    named 'lcg-example' using the Python 3.9 runtime it provides.
 
-    . cvmfs-venv --setup "lsetup 'views LCG_101 x86_64-centos7-gcc10-opt'" lcg-example
+        . cvmfs-venv --setup "lsetup 'views LCG_101 x86_64-centos7-gcc10-opt'" lcg-example
 
-    Setup ATLAS AnalysisBase release v22.2.110 and create a Python virtual
+    * Setup ATLAS AnalysisBase release v22.2.110 and create a Python virtual
     environment named 'alrb-example' using the Python 3.9 runtime it provides.
 
-    . cvmfs-venv --setup 'asetup AnalysisBase,22.2.110' alrb-example
+        . cvmfs-venv --setup 'asetup AnalysisBase,22.2.110' alrb-example
 
-    Create a Python 3 virtual environment named 'venv' with whatever Python runtime
-    "\$(command -v python3)" evaluates to.
+    * Create a Python 3 virtual environment named 'venv' with whatever Python
+    runtime "\$(command -v python3)" evaluates to.
 
-    . cvmfs-venv
+        . cvmfs-venv
+
+    * Create a Python 3 virtual environment named 'lcg-example' with the Python
+    runtime provided by LCG view 101
+
+        setupATLAS -3
+        lsetup 'views LCG_101 x86_64-centos7-gcc10-opt'
+        . cvmfs-venv lcg-example
+
+    * Create a Python 3 virtual environment named 'alrb-example' with the Python
+    runtime provided by ATLAS AnalysisBase release v22.2.110
+
+        setupATLAS -3
+        asetup AnalysisBase,22.2.110
+        . cvmfs-venv alrb-example
 EOF
 
   return 0
