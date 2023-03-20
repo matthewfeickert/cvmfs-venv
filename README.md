@@ -145,6 +145,7 @@ A full listing of all programs used outside of Bash shell builtins are:
 * `cat`
 * `ed`
 * `find`
+* `readlink`
 * `sed`
 * Python 3.3+ with `pip`
 
