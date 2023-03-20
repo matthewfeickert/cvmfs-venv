@@ -99,7 +99,7 @@ if [ ! -z "${_setup_command}" ]; then
                     . "${ATLAS_LOCAL_ROOT_BASE}/user/atlasLocalSetup.sh" -3 --quiet || echo '~~~ERROR: setupATLAS failed!~~~'
                 fi
 
-                printf "\n${_setup_command}"
+                printf "\n${_setup_command}\n"
                 eval "${_setup_command}"
             else
                 echo "ERROR: /cvmfs/atlas.cern.ch/ not found. Check that CernVM-FS is mounted correctly."
