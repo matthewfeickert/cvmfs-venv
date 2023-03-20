@@ -28,6 +28,9 @@ Usage: cvmfs-venv [-s|--setup] <virtual environment name>
 Options:
  -h --help      Print this help message
  -s --setup     String of setup options to be parsed
+ --no-update    After venv creation don't update pip, setuptools, and wheel
+                to the latest releases. Use of this option is not recommended,
+                but is faster.
 
 Note: cvmfs-venv extends the Python venv module and so requires Python 3.3+.
 

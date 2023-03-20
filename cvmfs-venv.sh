@@ -5,11 +5,14 @@ export PIP_REQUIRE_VIRTUALENV=true
 
 _help_options () {
     cat <<EOF
-Usage: cvmfs-venv [-s|--setup] <virtual environment name>
+Usage: cvmfs-venv [-s|--setup] [--no-update] <virtual environment name>
 
 Options:
  -h --help      Print this help message
  -s --setup     String of setup options to be parsed
+ --no-update    After venv creation don't update pip, setuptools, and wheel
+                to the latest releases. Use of this option is not recommended,
+                but is faster.
 
 Note: cvmfs-venv extends the Python venv module and so requires Python 3.3+.
 
@@ -61,6 +64,10 @@ while [ $# -gt 0 ]; do
         -s|--setup)
             _setup_command="${2}"
             shift 2
+            ;;
+        --no-update)
+            _no_update=true
+            shift
             ;;
         --)
             shift
@@ -318,10 +325,13 @@ fi
 
 # Get latest pip, setuptools, wheel
 # Hide not-real errors from CVMFS by sending to /dev/null
-python -m pip --quiet install --upgrade pip setuptools wheel &> /dev/null
+if [ -z "${_no_update}" ]; then
+    python -m pip --quiet install --upgrade pip setuptools wheel &> /dev/null
+fi
 
 unset _venv_name
 
 fi  # _return_break if statement end
 
 unset _return_break
+unset _no_update
