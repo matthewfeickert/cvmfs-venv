@@ -51,8 +51,11 @@ while [ $# -gt 0 ]; do
             ;;
         *)
             if [ $# -eq 1 ]; then
-                # this is the venv's name
-                break
+                # '-' also covers '--'
+                if [[ "${1}" != *"-"* ]]; then
+                    # this is the venv's name
+                    break
+                fi
             fi
             echo "ERROR: Invalid option '${1}'"
             exit 1
