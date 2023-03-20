@@ -23,7 +23,7 @@ Source the script to create a Python 3 virtual environment that can coexist with
 
 ```console
 $ . cvmfs-venv --help
-Usage: cvmfs-venv [-s|--setup] <virtual environment name>
+Usage: cvmfs-venv [-s|--setup] [--no-update] <virtual environment name>
 
 Options:
  -h --help      Print this help message
