@@ -3,6 +3,110 @@
 # Ensure that pip can't install outside a virtual environment
 export PIP_REQUIRE_VIRTUALENV=true
 
+_help_options () {
+  cat <<EOF
+Usage: cvmfs-venv [-s|--setup] <virtual environment name>
+
+Options:
+ -h --help      Print this help message
+ -s --setup     String of setup options to be parsed
+
+Note: cvmfs-venv extends the Python venv module and so requires Python 3.6+.
+
+Example:
+
+    Setup LCG view 101 on CentOS7 and create a Python virtual environment named
+    'lgc-example' using the Python 3.9 runtime it provides.
+
+    . cvmfs-venv --setup "lsetup 'views LCG_101 x86_64-centos7-gcc10-opt'" lcg-example
+
+    Setup ATLAS AnalysisBase release v22.2.110 and create a Python virtual
+    environment named 'alrb-example' using the Python 3.9 runtime it provides.
+
+    . cvmfs-venv --setup 'asetup AnalysisBase,22.2.110' alrb-example
+
+    Create a Python 3 virtual environment named 'venv' with whatever Python runtime
+    "\$(command -v python3)" evaluates to.
+
+    . cvmfs-venv
+EOF
+
+  return 0
+}
+
+# CLI API
+while [ $# -gt 0 ]; do
+    if [ $# -eq 1 ]; then
+        # this is the venv's name
+        break
+    fi
+    case "${1}" in
+        -h|--help)
+            _help_options
+            exit 0
+            ;;
+        -s|--setup)
+            _setup_command="${2}"
+            shift 2
+            ;;
+        --)
+            shift
+            break
+            ;;
+        *)
+            echo "ERROR: Invalid option '${1}'"
+            exit 1
+            ;;
+    esac
+done
+
+if [ ! -z "${_setup_command}" ]; then
+    if [ -f "/release_setup.sh" ]; then
+        # If in Linux container
+        if [[ "${_setup_command}" != *"/release_setup.sh"* ]]; then
+            echo "WARNING: /release_setup.sh exists and it is assumed you are in a Linux container."
+            echo "         '${_setup_command}' will be skipped in favor of using '. /release_setup.sh'."
+        fi
+        printf "\n. /release_setup.sh\n"
+        . /release_setup.sh
+    else
+        # Try to setup an environment using CVMFS
+        _do_setup_atlas=false
+        if [[ "${_setup_command}" == *"lsetup"* ]]; then
+            _do_setup_atlas=true
+        fi
+        if [[ "${_setup_command}" == *"asetup"* ]]; then
+            _do_setup_atlas=true
+        fi
+
+        if [ "${_do_setup_atlas}" = true ]; then
+            if [ -d "/cvmfs/atlas.cern.ch" ]; then
+                # Check to see if we need to run setupATLAS
+                command -v lsetup > /dev/null
+                if [ "$?" == "1" ]; then
+                    export ATLAS_LOCAL_ROOT_BASE=/cvmfs/atlas.cern.ch/repo/ATLASLocalRootBase
+                    # Allows for working with wrappers as well
+                    . "${ATLAS_LOCAL_ROOT_BASE}/user/atlasLocalSetup.sh" -3 --quiet || echo '~~~ERROR: setupATLAS failed!~~~'
+                fi
+
+                printf "\n${_setup_command}"
+                eval "${_setup_command}"
+            else
+                echo "ERROR: /cvmfs/atlas.cern.ch/ not found. Check that CernVM-FS is mounted correctly."
+                exit 1
+            fi
+        fi
+    fi
+# If in Linux container
+elif [ -f "/release_setup.sh" ]; then
+    echo "WARNING: /release_setup.sh exists and it is assumed you are in a Linux container."
+    echo "         Setting up environment with '. /release_setup.sh'."
+    . /release_setup.sh
+fi
+
+unset _setup_command
+unset _do_setup_atlas
+
 if [ -d "/cvmfs/atlas.cern.ch" ]; then
     # Check to see if we need to run setupATLAS
     command -v lsetup > /dev/null
