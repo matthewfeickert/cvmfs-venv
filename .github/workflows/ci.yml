@@ -14,7 +14,7 @@ jobs:
     strategy:
       matrix:
         venv-name: ["example", "name-with-hyphens"]
-        setup-command: ["lsetup 'views LCG_101 x86_64-centos7-gcc10-opt'"]
+        setup-command: [". /release_setup.sh", "lsetup 'views LCG_101 x86_64-centos7-gcc10-opt'"]
     container:
       image: gitlab-registry.cern.ch/atlas/athena/analysisbase:22.2.113
       options: --user root
