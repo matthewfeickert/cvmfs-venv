@@ -11,7 +11,7 @@ Options:
  -h --help      Print this help message
  -s --setup     String of setup options to be parsed
 
-Note: cvmfs-venv extends the Python venv module and so requires Python 3.6+.
+Note: cvmfs-venv extends the Python venv module and so requires Python 3.3+.
 
 Example:
 

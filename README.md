@@ -20,7 +20,31 @@ $ chmod +x ~/.local/bin/cvmfs-venv
 Source the script to create a Python 3 virtual environment that can coexist with a CVMFS LCG view. The default name is `venv`.
 
 ```console
-$ . cvmfs-venv <name of your virtual environment>  # default name is 'venv'
+$ . cvmfs-venv --help
+Usage: cvmfs-venv [-s|--setup] <virtual environment name>
+
+Options:
+ -h --help      Print this help message
+ -s --setup     String of setup options to be parsed
+
+Note: cvmfs-venv extends the Python venv module and so requires Python 3.3+.
+
+Example:
+
+    Setup LCG view 101 on CentOS7 and create a Python virtual environment named
+    'lgc-example' using the Python 3.9 runtime it provides.
+
+    . cvmfs-venv --setup "lsetup 'views LCG_101 x86_64-centos7-gcc10-opt'" lcg-example
+
+    Setup ATLAS AnalysisBase release v22.2.110 and create a Python virtual
+    environment named 'alrb-example' using the Python 3.9 runtime it provides.
+
+    . cvmfs-venv --setup 'asetup AnalysisBase,22.2.110' alrb-example
+
+    Create a Python 3 virtual environment named 'venv' with whatever Python runtime
+    "$(command -v python3)" evaluates to.
+
+    . cvmfs-venv
 ```
 
 ### Example
