@@ -1,5 +1,7 @@
 # cvmfs-venv
 
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.7751033.svg)](https://doi.org/10.5281/zenodo.7751033)
+
 Simple command line utility for getting a Python virtual environment to work with CVMFS [LCG views][LCG_info]. This is done by adding additional hooks to the Python virtual environment's `bin/activate` script.
 
 [LCG_info]: https://lcginfo.cern.ch/
@@ -236,7 +238,8 @@ The preferred BibTeX entry for citation of `cvmfs-venv` is
   author = {Matthew Feickert},
   title = "{cvmfs-venv: v0.0.1}",
   version = {0.0.1},
-  url = {https://github.com/matthewfeickert/cvmfs-venv/},
+  doi = {10.5281/zenodo.7751033},
+  url = {https://doi.org/10.5281/zenodo.7751033},
   note = {https://github.com/matthewfeickert/cvmfs-venv/releases/tag/v0.0.1}
 }
 ```
