@@ -159,6 +159,14 @@ The best that can be done is to control the directory tree at the **head** of `P
 While [`lcgenv`][lcgenv] allows for package specific environment building, it still lacks the control to specify arbitrary versions of Python packages and will load additional libraries beyond what is strictly required by the target package dependency requirements.
 That being said, if you are able to use an LCG view or `lcgenv` without any additional setup, you may not have need of specifying a Python virtual environment.
 
+While Python's [`venv` module][venv docs] does have the `--system-site-packages` option to
+
+> Give the virtual environment access to the system site-packages dir.
+
+this unfortunately isn't _quite_ enough.
+It does allow for isolation to work, but the manipulation of `PYTHONPATH` makes it so that while packages can be _installed_ properly in the local virtual environment and will show up with `python -m pip list` if there is another version of that package provided by the already setup environment that package version's location on `PYTHONPATH` will take precedence.
+Using `--system-site-packages` without `cvmfs-venv` is arguably even worse as it provides confusing differences in information between the user `pip list` view and the runtime environment.
+
 ## How things work
 
 `cvmfs-venv` provides a shim layer to manage activation and use of a Python virtual environment created with LCG view resources.
