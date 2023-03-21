@@ -31,6 +31,10 @@ Options:
  --no-update    After venv creation don't update pip, setuptools, and wheel
                 to the latest releases. Use of this option is not recommended,
                 but is faster.
+--no-system-site-packages
+                The venv module '--system-site-packages' option is used by
+                default. While it is not recommended, this behavior can be
+                disabled through use of this flag.
 
 Note: cvmfs-venv extends the Python venv module and so requires Python 3.3+.
 
