@@ -64,10 +64,14 @@ jobs:
     - name: Setup default venv using /release_setup.sh
       run: |
         . cvmfs-venv
+        echo "# cat $(find . -type f -iname pyvenv.cfg)"
+        cat $(find . -type f -iname pyvenv.cfg)
         echo "# Python runtime: $(command -v python)"
         python --version --version
         echo "PATH=${PATH}"
         echo "PYTHONPATH=${PYTHONPATH}"
+        echo "# cat $(find . -type f -iname pyvenv.cfg)"
+        cat $(find . -type f -iname pyvenv.cfg)
 
     - name: Remove default venv
       run: |
@@ -76,6 +80,8 @@ jobs:
     - name: Setup venv "${{ matrix.venv-name }}" using /release_setup.sh
       run: |
         . cvmfs-venv --setup "${{ matrix.setup-command }}" ${{ matrix.venv-name }}
+        echo "# cat $(find . -type f -iname pyvenv.cfg)"
+        cat $(find . -type f -iname pyvenv.cfg)
         echo "# Python runtime: $(command -v python)"
         python --version --version
         echo "PATH=${PATH}"
@@ -128,12 +134,28 @@ jobs:
       run: |
         rm -rf ${{ matrix.venv-name }}
 
-    - name: Setup default venv with --no-update option
+    - name: Setup default venv with --no-system-site-packages option
       run: |
-        . cvmfs-venv --no-update
+        . cvmfs-venv --no-system-site-packages
+        echo "# cat $(find . -type f -iname pyvenv.cfg)"
+        cat $(find . -type f -iname pyvenv.cfg)
         echo "# Python runtime: $(command -v python)"
         python --version --version
         echo "# python -m pip list"
         python -m pip list
         echo "# python -m pip list --local"
         python -m pip list --local
+        rm -rf venv
+
+    - name: Setup default venv with --no-update option
+      run: |
+        . cvmfs-venv --no-update
+        echo "# cat $(find . -type f -iname pyvenv.cfg)"
+        cat $(find . -type f -iname pyvenv.cfg)
+        echo "# Python runtime: $(command -v python)"
+        python --version --version
+        echo "# python -m pip list"
+        python -m pip list
+        echo "# python -m pip list --local"
+        python -m pip list --local
+        rm -rf venv
