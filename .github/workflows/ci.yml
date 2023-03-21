@@ -64,6 +64,8 @@ jobs:
     - name: Setup default venv using /release_setup.sh
       run: |
         . cvmfs-venv
+        echo "# cat $(find . -type f -iname pyvenv.cfg)"
+        cat $(find . -type f -iname pyvenv.cfg)
         echo "# Python runtime: $(command -v python)"
         python --version --version
         echo "PATH=${PATH}"
@@ -78,6 +80,8 @@ jobs:
     - name: Setup venv "${{ matrix.venv-name }}" using /release_setup.sh
       run: |
         . cvmfs-venv --setup "${{ matrix.setup-command }}" ${{ matrix.venv-name }}
+        echo "# cat $(find . -type f -iname pyvenv.cfg)"
+        cat $(find . -type f -iname pyvenv.cfg)
         echo "# Python runtime: $(command -v python)"
         python --version --version
         echo "PATH=${PATH}"
@@ -133,10 +137,10 @@ jobs:
     - name: Setup default venv with --no-system-site-packages option
       run: |
         . cvmfs-venv --no-system-site-packages
-        echo "# Python runtime: $(command -v python)"
-        python --version --version
         echo "# cat $(find . -type f -iname pyvenv.cfg)"
         cat $(find . -type f -iname pyvenv.cfg)
+        echo "# Python runtime: $(command -v python)"
+        python --version --version
         echo "# python -m pip list"
         python -m pip list
         echo "# python -m pip list --local"
@@ -146,6 +150,8 @@ jobs:
     - name: Setup default venv with --no-update option
       run: |
         . cvmfs-venv --no-update
+        echo "# cat $(find . -type f -iname pyvenv.cfg)"
+        cat $(find . -type f -iname pyvenv.cfg)
         echo "# Python runtime: $(command -v python)"
         python --version --version
         echo "# python -m pip list"
