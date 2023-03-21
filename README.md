@@ -22,7 +22,7 @@ $ chmod +x ~/.local/bin/cvmfs-venv
 Source the script to create a Python 3 virtual environment that can coexist with a CVMFS LCG view. The default name is `venv`.
 
 ```console
-$ . cvmfs-venv --help
+$ cvmfs-venv --help
 Usage: cvmfs-venv [-s|--setup] [--no-system-site-packages] [--no-update] <virtual environment name>
 
 Options:
@@ -45,19 +45,22 @@ Examples:
 
         setupATLAS -3
         lsetup 'views LCG_102 x86_64-centos7-gcc11-opt'
-        . cvmfs-venv lcg-example
+        cvmfs-venv lcg-example
+        . lcg-example/bin/activate
 
-    * Create a Python 3 virtual environment named 'alrb-example' with the Python
-    runtime provided by ATLAS AnalysisBase release v22.2.113.
+    * Create a Python 3 virtual environment named 'atlas-ab-example' with the
+    Python runtime provided by ATLAS AnalysisBase release v22.2.113.
 
         setupATLAS -3
         asetup AnalysisBase,22.2.113
-        . cvmfs-venv alrb-example
+        cvmfs-venv atlas-ab-example
+        . atlas-ab-example/bin/activate
 
     * Create a Python 3 virtual environment named 'venv' with whatever Python
     runtime "\$(command -v python3)" evaluates to.
 
-        . cvmfs-venv
+        cvmfs-venv
+        . venv/bin/activate
 
     * Setup LCG view 102 on CentOS7 and create a Python virtual environment
     named 'lcg-example' using the Python 3.9 runtime it provides.
@@ -65,9 +68,10 @@ Examples:
         . cvmfs-venv --setup "lsetup 'views LCG_102 x86_64-centos7-gcc11-opt'" lcg-example
 
     * Setup ATLAS AnalysisBase release v22.2.113 and create a Python virtual
-    environment named 'alrb-example' using the Python 3.9 runtime it provides.
+    environment named 'atlas-ab-example' using the Python 3.9 runtime it
+    provides.
 
-        . cvmfs-venv --setup 'asetup AnalysisBase,22.2.113' alrb-example
+        . cvmfs-venv --setup 'asetup AnalysisBase,22.2.113' atlas-ab-example
 ```
 
 ### Example: Virtual environment with LCG view
