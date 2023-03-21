@@ -82,15 +82,16 @@ $ ssh lxplus
 [feickert@lxplus732 ~]$ export PATH=~/.local/bin:"${PATH}"
 [feickert@lxplus732 ~]$ curl -sL https://raw.githubusercontent.com/matthewfeickert/cvmfs-venv/main/cvmfs-venv.sh -o ~/.local/bin/cvmfs-venv
 [feickert@lxplus732 ~]$ chmod +x ~/.local/bin/cvmfs-venv
-[feickert@lxplus732 ~]$ . cvmfs-venv --setup "lsetup 'views LCG_102 x86_64-centos7-gcc11-opt'" lcg-example
-
-lsetup 'views LCG_102 x86_64-centos7-gcc11-opt'
+[feickert@lxplus732 ~]$ setupATLAS -3 --quiet
+[feickert@lxplus732 ~]$ lsetup 'views LCG_102 x86_64-centos7-gcc11-opt'
 ************************************************************************
 Requested:  views ...
  Setting up views LCG_102:x86_64-centos7-gcc11-opt ...
 >>>>>>>>>>>>>>>>>>>>>>>>> Information for user <<<<<<<<<<<<<<<<<<<<<<<<<
 ************************************************************************
+[feickert@lxplus732 ~]$ cvmfs-venv lcg-example
 # Creating new Python virtual environment 'lcg-example'
+[feickert@lxplus732 ~]$ . lcg-example/bin/activate
 (lcg-example) [feickert@lxplus732 ~]$ python -m pip show lhapdf  # Still have full LCG view
 Name: LHAPDF
 Version: 6.5.1
