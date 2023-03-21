@@ -171,7 +171,7 @@ this unfortunately isn't _quite_ enough.
 It does allow for isolation to work, but the manipulation of `PYTHONPATH` makes it so that while packages can be _installed_ properly in the local virtual environment and will show up with `python -m pip list` if there is another version of that package provided by the already setup environment that package version's location on `PYTHONPATH` will take precedence.
 Using `--system-site-packages` without `cvmfs-venv` is arguably even worse as it provides confusing differences in information between what `pip` has purported to install in the user's virtual environment and the user `pip list` view and the runtime environment.
 
-**Caveat**: This is an LCG view specific issue mostly. If **nothing from LCG is used** (like a pure ATLAS AnalysisBase environment, or an environment in a Linux container) then `--system-site-packages` by itself is sufficient.
+**Caveat**: This is an LCG view specific issue mostly. If **nothing from LCG is used** (like a pure ATLAS AnalysisBase environment, or an environment in a Linux container) then `--system-site-packages` by itself should be sufficient.
 
 ## How things work
 
