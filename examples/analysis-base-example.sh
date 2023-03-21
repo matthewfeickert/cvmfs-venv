@@ -28,3 +28,5 @@ echo "# python -m pip show cython"
 python -m pip show cython
 echo "# python -c 'import cython; print(cython.__version__)'"
 python -c 'import cython; print(cython.__version__)'
+echo "# python -c 'import ROOT; print(ROOT); import XRootD; print(XRootD)'"
+python -c 'import ROOT; print(ROOT); import XRootD; print(XRootD)'
