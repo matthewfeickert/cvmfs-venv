@@ -5,7 +5,7 @@ export PIP_REQUIRE_VIRTUALENV=true
 
 _help_options () {
     cat <<EOF
-Usage: cvmfs-venv [-s|--setup] [--no-update] <virtual environment name>
+Usage: cvmfs-venv [-s|--setup] [--no-system-site-packages] [--no-update] <virtual environment name>
 
 Options:
  -h --help      Print this help message
@@ -13,6 +13,10 @@ Options:
  --no-update    After venv creation don't update pip, setuptools, and wheel
                 to the latest releases. Use of this option is not recommended,
                 but is faster.
+--no-system-site-packages
+                The venv module '--system-site-packages' option is used by
+                default. While it is not recommended, this behavior can be
+                disabled through use of this flag.
 
 Note: cvmfs-venv extends the Python venv module and so requires Python 3.3+.
 
@@ -64,6 +68,10 @@ while [ $# -gt 0 ]; do
         -s|--setup)
             _setup_command="${2}"
             shift 2
+            ;;
+        --no-system-site-packages)
+            _no_system_site_packages=true
+            shift
             ;;
         --no-update)
             _no_update=true
@@ -142,7 +150,11 @@ unset _do_setup_atlas
 _venv_name="${1:-venv}"
 if [ ! -d "${_venv_name}" ]; then
     printf "# Creating new Python virtual environment '%s'\n" "${_venv_name}"
-    python3 -m venv "${_venv_name}"
+    # Default to using --system-site-packages to add extra guards
+    if [ -z "${_no_system_site_packages}" ]; then
+        python3 -m venv "${_venv_name}"
+    fi
+    python3 -m venv --system-site-packages "${_venv_name}"
     _venv_full_path="$(readlink -f ${_venv_name})"
 
     # When setting up the Python virtual environment shell variables in the
@@ -334,4 +346,5 @@ unset _venv_name
 fi  # _return_break if statement end
 
 unset _return_break
+unset _no_system_site_packages
 unset _no_update
