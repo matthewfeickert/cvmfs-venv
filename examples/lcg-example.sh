@@ -1,5 +1,6 @@
 #!/bin/bash
 
+# Install cvmfs-venv
 mkdir -p ~/.local/bin
 export PATH=~/.local/bin:"${PATH}"  # If ~/.local/bin not on PATH already
 curl -sL https://raw.githubusercontent.com/matthewfeickert/cvmfs-venv/main/cvmfs-venv.sh -o ~/.local/bin/cvmfs-venv
