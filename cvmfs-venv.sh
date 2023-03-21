@@ -152,9 +152,10 @@ if [ ! -d "${_venv_name}" ]; then
     printf "# Creating new Python virtual environment '%s'\n" "${_venv_name}"
     # Default to using --system-site-packages to add extra guards
     if [ -z "${_no_system_site_packages}" ]; then
+        python3 -m venv --system-site-packages "${_venv_name}"
+    else
         python3 -m venv "${_venv_name}"
     fi
-    python3 -m venv --system-site-packages "${_venv_name}"
     _venv_full_path="$(readlink -f ${_venv_name})"
 
     # When setting up the Python virtual environment shell variables in the
