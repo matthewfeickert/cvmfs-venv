@@ -10,8 +10,8 @@ chmod +x ~/.local/bin/cvmfs-venv
 export ATLAS_LOCAL_ROOT_BASE=/cvmfs/atlas.cern.ch/repo/ATLASLocalRootBase
 . "${ATLAS_LOCAL_ROOT_BASE}/user/atlasLocalSetup.sh" -3 --quiet  # setuptATLAS
 
-echo "# asetup AnalysisBase,22.2.113"
-asetup AnalysisBase,22.2.113
+echo "# asetup AnalysisBase,24.2.2"
+asetup AnalysisBase,24.2.2
 echo "# cvmfs-venv atlas-ab-example"
 cvmfs-venv atlas-ab-example
 echo "# . atlas-ab-example/bin/activate"
