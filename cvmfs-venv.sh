@@ -343,7 +343,7 @@ fi
 # Get latest pip, setuptools, wheel
 # Hide not-real errors from CVMFS by sending to /dev/null
 if [ -z "${_no_update}" ]; then
-    python -m pip --quiet install --upgrade pip setuptools wheel &> /dev/null
+    python -m pip --quiet --no-cache-dir install --upgrade pip setuptools wheel &> /dev/null
 fi
 
 unset _venv_name
