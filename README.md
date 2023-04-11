@@ -49,10 +49,10 @@ Examples:
         . lcg-example/bin/activate
 
     * Create a Python 3 virtual environment named 'atlas-ab-example' with the
-    Python runtime provided by ATLAS AnalysisBase release v22.2.113.
+    Python runtime provided by ATLAS AnalysisBase release v24.2.2.
 
         setupATLAS -3
-        asetup AnalysisBase,22.2.113
+        asetup AnalysisBase,24.2.2
         cvmfs-venv atlas-ab-example
         . atlas-ab-example/bin/activate
 
@@ -67,11 +67,11 @@ Examples:
 
         . cvmfs-venv --setup "lsetup 'views LCG_102 x86_64-centos7-gcc11-opt'" lcg-example
 
-    * Setup ATLAS AnalysisBase release v22.2.113 and create a Python virtual
+    * Setup ATLAS AnalysisBase release v24.2.2 and create a Python virtual
     environment named 'atlas-ab-example' using the Python 3.9 runtime it
     provides.
 
-        . cvmfs-venv --setup 'asetup AnalysisBase,22.2.113' atlas-ab-example
+        . cvmfs-venv --setup 'asetup AnalysisBase,24.2.2' atlas-ab-example
 ```
 
 ### Example: Virtual environment with LCG view

@@ -16,7 +16,7 @@ jobs:
         venv-name: ["example", "name-with-hyphens"]
         setup-command: [". /release_setup.sh", "lsetup 'views LCG_102 x86_64-centos7-gcc11-opt'"]
     container:
-      image: gitlab-registry.cern.ch/atlas/athena/analysisbase:22.2.113
+      image: gitlab-registry.cern.ch/atlas/athena/analysisbase:24.2.2
       options: --user root
     env:
       HOME: /home/atlas
