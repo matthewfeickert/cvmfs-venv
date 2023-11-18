@@ -41,18 +41,18 @@ Note: cvmfs-venv extends the Python venv module and so requires Python 3.3+.
 Examples:
 
     * Create a Python 3 virtual environment named 'lcg-example' with the Python
-    runtime provided by LCG view 102 on CentOS7.
+    runtime provided by LCG view 104 on CentOS7.
 
         setupATLAS -3
-        lsetup 'views LCG_102 x86_64-centos7-gcc11-opt'
+        lsetup 'views LCG_104 x86_64-centos7-gcc12-opt'
         cvmfs-venv lcg-example
         . lcg-example/bin/activate
 
     * Create a Python 3 virtual environment named 'atlas-ab-example' with the
-    Python runtime provided by ATLAS AnalysisBase release v24.2.2.
+    Python runtime provided by ATLAS AnalysisBase release v24.2.30.
 
         setupATLAS -3
-        asetup AnalysisBase,24.2.2
+        asetup AnalysisBase,24.2.30
         cvmfs-venv atlas-ab-example
         . atlas-ab-example/bin/activate
 
@@ -62,16 +62,16 @@ Examples:
         cvmfs-venv
         . venv/bin/activate
 
-    * Setup LCG view 102 on CentOS7 and create a Python virtual environment
+    * Setup LCG view 104 on CentOS7 and create a Python virtual environment
     named 'lcg-example' using the Python 3.9 runtime it provides.
 
-        . cvmfs-venv --setup "lsetup 'views LCG_102 x86_64-centos7-gcc11-opt'" lcg-example
+        . cvmfs-venv --setup "lsetup 'views LCG_104 x86_64-centos7-gcc12-opt'" lcg-example
 
-    * Setup ATLAS AnalysisBase release v24.2.2 and create a Python virtual
+    * Setup ATLAS AnalysisBase release v24.2.30 and create a Python virtual
     environment named 'atlas-ab-example' using the Python 3.9 runtime it
     provides.
 
-        . cvmfs-venv --setup 'asetup AnalysisBase,24.2.2' atlas-ab-example
+        . cvmfs-venv --setup 'asetup AnalysisBase,24.2.30' atlas-ab-example
 ```
 
 ### Example: Virtual environment with LCG view
@@ -83,30 +83,30 @@ $ ssh lxplus
 [feickert@lxplus732 ~]$ curl -sL https://raw.githubusercontent.com/matthewfeickert/cvmfs-venv/main/cvmfs-venv.sh -o ~/.local/bin/cvmfs-venv
 [feickert@lxplus732 ~]$ chmod +x ~/.local/bin/cvmfs-venv
 [feickert@lxplus732 ~]$ setupATLAS -3 --quiet
-[feickert@lxplus732 ~]$ lsetup 'views LCG_102 x86_64-centos7-gcc11-opt'
+[feickert@lxplus732 ~]$ lsetup 'views LCG_104 x86_64-centos7-gcc12-opt'
 ************************************************************************
 Requested:  views ...
- Setting up views LCG_102:x86_64-centos7-gcc11-opt ...
+ Setting up views LCG_104:x86_64-centos7-gcc12-opt ...
 >>>>>>>>>>>>>>>>>>>>>>>>> Information for user <<<<<<<<<<<<<<<<<<<<<<<<<
 ************************************************************************
 [feickert@lxplus732 ~]$ cvmfs-venv lcg-example
 # Creating new Python virtual environment 'lcg-example'
 [feickert@lxplus732 ~]$ . lcg-example/bin/activate
-(lcg-example) [feickert@lxplus732 ~]$ python -m pip show lhapdf  # Still have full LCG view
-Name: LHAPDF
-Version: 6.5.1
-Summary: The LHAPDF parton density evaluation library
-Home-page: https://lhapdf.hepforge.org/
-Author: LHAPDF Collaboration
-Author-email: lhapdf-dev@cern.ch
-License: GPLv3
-Location: /cvmfs/sft.cern.ch/lcg/views/LCG_102/x86_64-centos7-gcc11-opt/lib/python3.9/site-packages
-Requires:
+(lcg-example) [feickert@lxplus732 ~]$ python -m pip show hepdata-lib  # Still have full LCG view
+Name: hepdata-lib
+Version: 0.12.0
+Summary: Library for getting your data into HEPData
+Home-page: https://github.com/HEPData/hepdata_lib
+Author: Andreas Albert, Clemens Lange
+Author-email: hepdata-lib@cern.ch
+License: UNKNOWN
+Location: /cvmfs/sft.cern.ch/lcg/views/LCG_104/x86_64-centos7-gcc12-opt/lib/python3.9/site-packages
+Requires: future, hepdata-validator, numpy, PyYAML
 Required-by:
 (lcg-example) [feickert@lxplus732 ~]$ python -m pip install --upgrade awkward  # This will show a false ERROR given CVFMS is in PYTHONPATH
 (lcg-example) [feickert@lxplus732 ~]$ python
-Python 3.9.12 (main, Jun  7 2022, 16:09:12)
-[GCC 11.2.0] on linux
+Python 3.9.12 (main, Oct 19 2022, 15:11:58)
+[GCC 12.1.0] on linux
 Type "help", "copyright", "credits" or "license" for more information.
 >>> import ROOT
 >>> import XRootD
@@ -114,36 +114,35 @@ Type "help", "copyright", "credits" or "license" for more information.
 >>> exit()
 (lcg-example) [feickert@lxplus732 ~]$ python -m pip show awkward  # Get version installed in venv
 Name: awkward
-Version: 2.1.1
+Version: 2.5.0
 Summary: Manipulate JSON-like data with NumPy-like idioms.
 Home-page:
 Author:
 Author-email: Jim Pivarski <pivarski@princeton.edu>
 License: BSD-3-Clause
 Location: /afs/cern.ch/user/f/feickert/lcg-example/lib/python3.9/site-packages
-Requires: awkward-cpp, numpy, packaging, typing-extensions
-Required-by: coffea
+Requires: awkward-cpp, importlib-metadata, numpy, packaging, typing-extensions
+Required-by: cabinetry, coffea, servicex, uproot_browser
 (lcg-example) [feickert@lxplus732 ~]$ python -m pip list --local  # View of virtual environment controlled packages
-Package           Version
------------------ -------
-awkward           2.1.1
-awkward-cpp       12
-pip               23.0.1
-setuptools        67.6.0
-typing_extensions 4.5.0
-wheel             0.40.0
+Package     Version
+----------- -------
+awkward     2.5.0
+awkward-cpp 26
+pip         23.3.1
+setuptools  68.2.2
+wheel       0.41.3
 (lcg-example) [feickert@lxplus732 ~]$ deactivate  # Resets PYTHONPATH given added hooks
 [feickert@lxplus732 ~]$ python -m pip show awkward  # Get CVMFS's old version
 Name: awkward
-Version: 1.7.0
+Version: 1.10.3
 Summary: Manipulate JSON-like data with NumPy-like idioms.
 Home-page: https://github.com/scikit-hep/awkward-1.0
 Author: Jim Pivarski
 Author-email: pivarski@princeton.edu
 License: BSD-3-Clause
-Location: /cvmfs/sft.cern.ch/lcg/views/LCG_102/x86_64-centos7-gcc11-opt/lib/python3.9/site-packages
-Requires: numpy, setuptools
-Required-by: coffea
+Location: /cvmfs/sft.cern.ch/lcg/views/LCG_104/x86_64-centos7-gcc12-opt/lib/python3.9/site-packages
+Requires: numpy, packaging
+Required-by: cabinetry, coffea, servicex, uproot_browser
 ```
 
 ## Dependencies
@@ -193,12 +192,12 @@ This is done by injecting Bash snippets directly into the `bin/activate` script 
 * Once the virtual environment is setup and modified there is no additional dependency on the `cvmfs-venv` script that generated it.
    - While it saves time it is not needed. You can setup the environment again without it.
    ```console
-   $ . cvmfs-venv --setup "lsetup 'views LCG_102 x86_64-centos7-gcc11-opt'" venv
+   $ . cvmfs-venv --setup "lsetup 'views LCG_104 x86_64-centos7-gcc12-opt'" venv
    ```
    vs.
    ```console
    $ setupATLAS -3
-   $ lsetup "views LCG_102 x86_64-centos7-gcc11-opt"
+   $ lsetup "views LCG_104 x86_64-centos7-gcc12-opt"
    $ . venv/bin/activate
    ```
 * As the virtual environment  is **prepended** to `PYTHONPATH` all packages installed in the virtual environment are automatically given higher precedence over existing packages of the same name found in the LCG view.
@@ -210,7 +209,7 @@ This is done by injecting Bash snippets directly into the `bin/activate` script 
 
    ```console
    $ setupATLAS -3
-   $ lsetup "views LCG_102 x86_64-centos7-gcc11-opt"
+   $ lsetup "views LCG_104 x86_64-centos7-gcc12-opt"
    $ lsetup "rucio -w"  # PYTHONPATH is altered by lsetup
    $ command -v rucio  # rucio is found
    $ . venv/bin/activate
@@ -223,7 +222,7 @@ This is done by injecting Bash snippets directly into the `bin/activate` script 
 
    ```console
    $ setupATLAS -3
-   $ lsetup "views LCG_102 x86_64-centos7-gcc11-opt"
+   $ lsetup "views LCG_104 x86_64-centos7-gcc12-opt"
    $ . venv/bin/activate
    (venv) $ lsetup "rucio -w"  # PYTHONPATH is altered by lsetup
    (venv) $ command -v rucio  # rucio is found
@@ -246,7 +245,7 @@ This can result in packages from the LCG view meeting requirements of other depe
    - Example:
    ```console
    (venv) $ python -m pip install --upgrade pip-tools
-   (venv) $ echo "scipy==1.8.0" > requirements.txt  # define high level requirements
+   (venv) $ echo "scipy==1.11.3" > requirements.txt  # define high level requirements
    (venv) $ pip-compile --generate-hashes --output-file requirements.lock requirements.txt  # Generate full environment lock file
    (venv) $ python -m pip install --no-deps --require-hashes --only-binary :all: --requirement requirements.lock  # secure-install for reproducibility
    ```

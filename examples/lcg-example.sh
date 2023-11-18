@@ -10,8 +10,8 @@ chmod +x ~/.local/bin/cvmfs-venv
 export ATLAS_LOCAL_ROOT_BASE=/cvmfs/atlas.cern.ch/repo/ATLASLocalRootBase
 . "${ATLAS_LOCAL_ROOT_BASE}/user/atlasLocalSetup.sh" -3 --quiet  # setuptATLAS
 
-echo "# lsetup 'views LCG_102 x86_64-centos7-gcc11-opt'"
-lsetup 'views LCG_102 x86_64-centos7-gcc11-opt'
+echo "# lsetup 'views LCG_104 x86_64-centos7-gcc12-opt'"
+lsetup 'views LCG_104 x86_64-centos7-gcc12-opt'
 echo "# cvmfs-venv lcg-example"
 cvmfs-venv lcg-example
 echo "# . lcg-example/bin/activate"

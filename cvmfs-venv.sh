@@ -23,18 +23,18 @@ Note: cvmfs-venv extends the Python venv module and so requires Python 3.3+.
 Examples:
 
     * Create a Python 3 virtual environment named 'lcg-example' with the Python
-    runtime provided by LCG view 102 on CentOS7.
+    runtime provided by LCG view 104 on CentOS7.
 
         setupATLAS -3
-        lsetup 'views LCG_102 x86_64-centos7-gcc11-opt'
+        lsetup 'views LCG_104 x86_64-centos7-gcc12-opt'
         cvmfs-venv lcg-example
         . lcg-example/bin/activate
 
     * Create a Python 3 virtual environment named 'atlas-ab-example' with the
-    Python runtime provided by ATLAS AnalysisBase release v24.2.2.
+    Python runtime provided by ATLAS AnalysisBase release v24.2.30.
 
         setupATLAS -3
-        asetup AnalysisBase,24.2.2
+        asetup AnalysisBase,24.2.30
         cvmfs-venv atlas-ab-example
         . atlas-ab-example/bin/activate
 
@@ -44,16 +44,16 @@ Examples:
         cvmfs-venv
         . venv/bin/activate
 
-    * Setup LCG view 102 on CentOS7 and create a Python virtual environment
+    * Setup LCG view 104 on CentOS7 and create a Python virtual environment
     named 'lcg-example' using the Python 3.9 runtime it provides.
 
-        . cvmfs-venv --setup "lsetup 'views LCG_102 x86_64-centos7-gcc11-opt'" lcg-example
+        . cvmfs-venv --setup "lsetup 'views LCG_104 x86_64-centos7-gcc12-opt'" lcg-example
 
-    * Setup ATLAS AnalysisBase release v24.2.2 and create a Python virtual
+    * Setup ATLAS AnalysisBase release v24.2.30 and create a Python virtual
     environment named 'atlas-ab-example' using the Python 3.9 runtime it
     provides.
 
-        . cvmfs-venv --setup 'asetup AnalysisBase,24.2.2' atlas-ab-example
+        . cvmfs-venv --setup 'asetup AnalysisBase,24.2.30' atlas-ab-example
 EOF
 
   return 0
