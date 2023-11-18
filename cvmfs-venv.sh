@@ -240,7 +240,12 @@ cvmfs-venv-rebase () {
         # Update value of PATH to restore at deactivate
         _OLD_VIRTUAL_PATH="\${_PATH}"
         # Prepend \$VIRTUAL_ENV/bin to front of PATH
-        _PATH="\${VIRTUAL_ENV_BIN}:\${_PATH}"
+        # In the event that VIRTUAL_ENV_BIN already happened
+        # to be at the head of PATH, do nothing to avoid
+        # having the same directory path twice consecutively.
+        if [ "\${_PATH%%:*}" != "\${VIRTUAL_ENV_BIN}" ] ; then
+            _PATH="\${VIRTUAL_ENV_BIN}:\${_PATH}"
+        fi
         export PATH="\${_PATH}"
 
         unset VIRTUAL_ENV_BIN
@@ -259,8 +264,13 @@ cvmfs-venv-rebase () {
         _PYTHONPATH="\${_PYTHONPATH%:}"
         # Update value of PYTHONPATH to restore at deactivate
         _OLD_VIRTUAL_PYTHONPATH="\${_PYTHONPATH}"
-        # Prepend _VIRTUAL_SITE_PACKAGES_DIRECTORY_TREE to front of PYTHONPATH
-        _PYTHONPATH="\${_VIRTUAL_SITE_PACKAGES}:\${_PYTHONPATH}"
+        # Prepend _VIRTUAL_SITE_PACKAGES to front of PYTHONPATH
+        # In the event that VIRTUAL_SITE_PACKAGES already happened
+        # to be at the head of PYTHONPATH, do nothing to avoid
+        # having the same directory path twice consecutively.
+        if [ "\${_PYTHONPATH%%:*}" != "\${_VIRTUAL_SITE_PACKAGES}" ] ; then
+            _PYTHONPATH="\${_VIRTUAL_SITE_PACKAGES}:\${_PYTHONPATH}"
+        fi
         export PYTHONPATH="\${_PYTHONPATH}"
 
         unset _PYTHONPATH
