@@ -14,9 +14,9 @@ jobs:
     strategy:
       matrix:
         venv-name: ["example", "name-with-hyphens"]
-        setup-command: [". /release_setup.sh", "lsetup 'views LCG_104 x86_64-centos7-gcc12-opt'"]
+        setup-command: [". /release_setup.sh", "lsetup 'views LCG_105 x86_64-el9-gcc12-opt'"]
     container:
-      image: gitlab-registry.cern.ch/atlas/athena/analysisbase:24.2.30
+      image: gitlab-registry.cern.ch/atlas/athena/analysisbase:25.2.9
       options: --user root
     env:
       HOME: /home/atlas
@@ -28,8 +28,7 @@ jobs:
         working-directory: /workdir
 
     steps:
-      # AnalysisBase Git version is too old to use modern checkout action
-    - uses: actions/checkout@v1
+    - uses: actions/checkout@v4
 
     - name: Setup directories
       run: |
@@ -100,12 +99,14 @@ jobs:
       run: |
         . /release_setup.sh
         . ${{ matrix.venv-name }}/bin/activate
-        echo "# python -m pip install --upgrade numpy uproot"
-        python -m pip install --upgrade numpy uproot
+        echo "# uv pip install --upgrade numpy uproot"
+        uv pip install --upgrade numpy uproot
         echo "# python -m pip list"
         python -m pip list
         echo "# python -m pip list --local"
         python -m pip list --local
+        echo "# uv pip list"
+        uv pip list
 
     - name: Deactivate environment
       run: |
