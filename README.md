@@ -23,7 +23,7 @@ Source the script to create a Python 3 virtual environment that can coexist with
 
 ```console
 $ cvmfs-venv --help
-Usage: cvmfs-venv [-s|--setup] [--no-system-site-packages] [--no-update] <virtual environment name>
+Usage: cvmfs-venv [-s|--setup] [--no-system-site-packages] [--no-update] [--no-uv] <virtual environment name>
 
 Options:
  -h --help      Print this help message
@@ -35,6 +35,8 @@ Options:
  --no-update    After venv creation don't update pip, setuptools, and wheel
                 to the latest releases. Use of this option is not recommended,
                 but is faster.
+ --no-uv        After venv creation don't install uv and use it to update pip,
+                setuptools, and wheel. By default, uv is installed.
 
 Note: cvmfs-venv extends the Python venv module and so requires Python 3.3+.
 
