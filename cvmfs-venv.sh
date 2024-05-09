@@ -5,7 +5,7 @@ export PIP_REQUIRE_VIRTUALENV=true
 
 _help_options () {
     cat <<EOF
-Usage: cvmfs-venv [-s|--setup] [--no-system-site-packages] [--no-update] <virtual environment name>
+Usage: cvmfs-venv [-s|--setup] [--no-system-site-packages] [--no-update] [--no-uv] <virtual environment name>
 
 Options:
  -h --help      Print this help message
@@ -17,6 +17,8 @@ Options:
  --no-update    After venv creation don't update pip, setuptools, and wheel
                 to the latest releases. Use of this option is not recommended,
                 but is faster.
+ --no-uv        After venv creation don't install uv and use it to update pip,
+                setuptools, and wheel. By default, uv is installed.
 
 Note: cvmfs-venv extends the Python venv module and so requires Python 3.3+.
 
@@ -79,6 +81,10 @@ while [ $# -gt 0 ]; do
             ;;
         --no-update)
             _no_update=true
+            shift
+            ;;
+        --no-uv)
+            _no_uv=true
             shift
             ;;
         --)
@@ -350,10 +356,20 @@ fi
 # Activate the virtual environment
 . "${_venv_name}/bin/activate"
 
+# Install uv by default
+if [ -z "${_no_uv}" ]; then
+    python -m pip --quiet --no-cache-dir install --upgrade uv &> /dev/null
+fi
+
 # Get latest pip, setuptools, wheel
-# Hide not-real errors from CVMFS by sending to /dev/null
 if [ -z "${_no_update}" ]; then
-    python -m pip --quiet --no-cache-dir install --upgrade pip setuptools wheel &> /dev/null
+    # Use uv by default
+    if [ -z "${_no_uv}" ]; then
+        uv pip --quiet install --upgrade pip setuptools wheel
+    else
+        # Hide not-real errors from CVMFS by sending to /dev/null
+        python -m pip --quiet --no-cache-dir install --upgrade pip setuptools wheel &> /dev/null
+    fi
 fi
 
 unset _venv_name
@@ -363,3 +379,4 @@ fi  # _return_break if statement end
 unset _return_break
 unset _no_system_site_packages
 unset _no_update
+unset _no_uv

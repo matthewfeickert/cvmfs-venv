@@ -10,8 +10,8 @@ chmod +x ~/.local/bin/cvmfs-venv
 export ATLAS_LOCAL_ROOT_BASE=/cvmfs/atlas.cern.ch/repo/ATLASLocalRootBase
 . "${ATLAS_LOCAL_ROOT_BASE}/user/atlasLocalSetup.sh" -3 --quiet  # setuptATLAS
 
-echo "# lsetup 'views LCG_104 x86_64-centos7-gcc12-opt'"
-lsetup 'views LCG_104 x86_64-centos7-gcc12-opt'
+echo "# lsetup 'views LCG_105 x86_64-el9-gcc12-opt'"
+lsetup 'views LCG_105 x86_64-el9-gcc12-opt'
 echo "# cvmfs-venv lcg-example"
 cvmfs-venv lcg-example
 echo "# . lcg-example/bin/activate"
@@ -21,10 +21,12 @@ echo "# python -m pip list --local"
 python -m pip list --local
 echo "# python -m pip show awkward"
 python -m pip show awkward
-echo "# python -m pip install --upgrade awkward"
-python -m pip install --upgrade awkward
+echo "# uv pip install --upgrade awkward"
+uv pip install --upgrade awkward
 echo "# python -m pip list --local"
 python -m pip list --local
+echo "# uv pip list"
+uv pip list
 echo "# python -m pip show awkward"
 python -m pip show awkward
 echo "# python -c 'import awkward; print(awkward.__version__)'"

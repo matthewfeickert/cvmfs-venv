@@ -23,7 +23,7 @@ Source the script to create a Python 3 virtual environment that can coexist with
 
 ```console
 $ cvmfs-venv --help
-Usage: cvmfs-venv [-s|--setup] [--no-system-site-packages] [--no-update] <virtual environment name>
+Usage: cvmfs-venv [-s|--setup] [--no-system-site-packages] [--no-update] [--no-uv] <virtual environment name>
 
 Options:
  -h --help      Print this help message
@@ -35,6 +35,8 @@ Options:
  --no-update    After venv creation don't update pip, setuptools, and wheel
                 to the latest releases. Use of this option is not recommended,
                 but is faster.
+ --no-uv        After venv creation don't install uv and use it to update pip,
+                setuptools, and wheel. By default, uv is installed.
 
 Note: cvmfs-venv extends the Python venv module and so requires Python 3.3+.
 
@@ -78,21 +80,28 @@ Examples:
 
 ```console
 $ ssh lxplus
-[feickert@lxplus732 ~]$ mkdir -p ~/.local/bin
-[feickert@lxplus732 ~]$ export PATH=~/.local/bin:"${PATH}"
-[feickert@lxplus732 ~]$ curl -sL https://raw.githubusercontent.com/matthewfeickert/cvmfs-venv/main/cvmfs-venv.sh -o ~/.local/bin/cvmfs-venv
-[feickert@lxplus732 ~]$ chmod +x ~/.local/bin/cvmfs-venv
-[feickert@lxplus732 ~]$ setupATLAS -3 --quiet
-[feickert@lxplus732 ~]$ lsetup 'views LCG_104 x86_64-centos7-gcc12-opt'
+[feickert@lxplus924 ~]$ mkdir -p ~/.local/bin
+[feickert@lxplus924 ~]$ export PATH=~/.local/bin:"${PATH}"
+[feickert@lxplus924 ~]$ curl -sL https://raw.githubusercontent.com/matthewfeickert/cvmfs-venv/main/cvmfs-venv.sh -o ~/.local/bin/cvmfs-venv
+[feickert@lxplus924 ~]$ chmod +x ~/.local/bin/cvmfs-venv
+[feickert@lxplus924 ~]$ setupATLAS -3 --quiet
+[feickert@lxplus924 ~]$ lsetup 'views LCG_105 x86_64-el9-gcc12-opt'
 ************************************************************************
 Requested:  views ...
  Setting up views LCG_104:x86_64-centos7-gcc12-opt ...
 >>>>>>>>>>>>>>>>>>>>>>>>> Information for user <<<<<<<<<<<<<<<<<<<<<<<<<
 ************************************************************************
-[feickert@lxplus732 ~]$ cvmfs-venv lcg-example
+[feickert@lxplus924 ~]$ cvmfs-venv lcg-example
 # Creating new Python virtual environment 'lcg-example'
-[feickert@lxplus732 ~]$ . lcg-example/bin/activate
-(lcg-example) [feickert@lxplus732 ~]$ python -m pip show hepdata-lib  # Still have full LCG view
+[feickert@lxplus924 ~]$ . lcg-example/bin/activate
+(lcg-example) [feickert@lxplus924 ~]$ python -m pip list --local  # Show installed defaults
+Package    Version
+---------- -------
+pip        24.0
+setuptools 69.5.1
+uv         0.1.42
+wheel      0.43.0
+(lcg-example) [feickert@lxplus924 ~]$ python -m pip show hepdata-lib  # Still have full LCG view
 Name: hepdata-lib
 Version: 0.12.0
 Summary: Library for getting your data into HEPData
@@ -100,39 +109,61 @@ Home-page: https://github.com/HEPData/hepdata_lib
 Author: Andreas Albert, Clemens Lange
 Author-email: hepdata-lib@cern.ch
 License: UNKNOWN
-Location: /cvmfs/sft.cern.ch/lcg/views/LCG_104/x86_64-centos7-gcc12-opt/lib/python3.9/site-packages
+Location: /cvmfs/sft.cern.ch/lcg/views/LCG_105/x86_64-el9-gcc12-opt/lib/python3.9/site-packages
 Requires: future, hepdata-validator, numpy, PyYAML
 Required-by:
-(lcg-example) [feickert@lxplus732 ~]$ python -m pip install --upgrade awkward  # This will show a false ERROR given CVFMS is in PYTHONPATH
-(lcg-example) [feickert@lxplus732 ~]$ python
-Python 3.9.12 (main, Oct 19 2022, 15:11:58)
+(lcg-example) [feickert@lxplus924 ~]$ uv pip install --upgrade awkward
+(lcg-example) [feickert@lxplus924 ~]$ python
+Python 3.9.12 (main, Jul 11 2023, 14:44:04)
 [GCC 12.1.0] on linux
 Type "help", "copyright", "credits" or "license" for more information.
 >>> import ROOT
 >>> import XRootD
 >>> import awkward
 >>> exit()
-(lcg-example) [feickert@lxplus732 ~]$ python -m pip show awkward  # Get version installed in venv
+(lcg-example) [feickert@lxplus924 ~]$ python -m pip show awkward  # Get version installed in venv
 Name: awkward
-Version: 2.5.0
+Version: 2.6.4
 Summary: Manipulate JSON-like data with NumPy-like idioms.
 Home-page:
 Author:
 Author-email: Jim Pivarski <pivarski@princeton.edu>
 License: BSD-3-Clause
 Location: /afs/cern.ch/user/f/feickert/lcg-example/lib/python3.9/site-packages
-Requires: awkward-cpp, importlib-metadata, numpy, packaging, typing-extensions
+Requires: awkward-cpp, fsspec, importlib-metadata, numpy, packaging, typing-extensions
 Required-by: cabinetry, coffea, servicex, uproot_browser
-(lcg-example) [feickert@lxplus732 ~]$ python -m pip list --local  # View of virtual environment controlled packages
-Package     Version
------------ -------
-awkward     2.5.0
-awkward-cpp 26
-pip         23.3.1
-setuptools  68.2.2
-wheel       0.41.3
-(lcg-example) [feickert@lxplus732 ~]$ deactivate  # Resets PYTHONPATH given added hooks
-[feickert@lxplus732 ~]$ python -m pip show awkward  # Get CVMFS's old version
+(lcg-example) [feickert@lxplus924 ~]$ python -m pip list --local  # View of virtual environment controlled packages
+Package            Version
+------------------ --------
+awkward            2.6.4
+awkward-cpp        33
+fsspec             2024.3.1
+importlib_metadata 7.1.0
+numpy              1.26.4
+packaging          24.0
+pip                24.0
+setuptools         69.5.1
+typing_extensions  4.11.0
+uv                 0.1.42
+wheel              0.43.0
+zipp               3.18.1
+(lcg-example) [feickert@lxplus924 ~]$ uv pip list  # uv will show the same view
+Package            Version
+------------------ --------
+awkward            2.6.4
+awkward-cpp        33
+fsspec             2024.3.1
+importlib-metadata 7.1.0
+numpy              1.26.4
+packaging          24.0
+pip                24.0
+setuptools         69.5.1
+typing-extensions  4.11.0
+uv                 0.1.42
+wheel              0.43.0
+zipp               3.18.1
+(lcg-example) [feickert@lxplus924 ~]$ deactivate  # Resets PYTHONPATH given added hooks
+[feickert@lxplus924 ~]$ python -m pip show awkward  # Get CVMFS's old version
 Name: awkward
 Version: 1.10.3
 Summary: Manipulate JSON-like data with NumPy-like idioms.
@@ -140,7 +171,7 @@ Home-page: https://github.com/scikit-hep/awkward-1.0
 Author: Jim Pivarski
 Author-email: pivarski@princeton.edu
 License: BSD-3-Clause
-Location: /cvmfs/sft.cern.ch/lcg/views/LCG_104/x86_64-centos7-gcc12-opt/lib/python3.9/site-packages
+Location: /cvmfs/sft.cern.ch/lcg/views/LCG_105/x86_64-el9-gcc12-opt/lib/python3.9/site-packages
 Requires: numpy, packaging
 Required-by: cabinetry, coffea, servicex, uproot_browser
 ```
