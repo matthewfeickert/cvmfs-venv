@@ -290,11 +290,11 @@ The preferred BibTeX entry for citation of `cvmfs-venv` is
 ```
 @software{cvmfs-venv,
   author = {Matthew Feickert},
-  title = "{cvmfs-venv: v0.0.5}",
-  version = {0.0.5},
+  title = "{cvmfs-venv: v0.0.6}",
+  version = {0.0.6},
   doi = {10.5281/zenodo.7751033},
   url = {https://doi.org/10.5281/zenodo.7751033},
-  note = {https://github.com/matthewfeickert/cvmfs-venv/releases/tag/v0.0.5}
+  note = {https://github.com/matthewfeickert/cvmfs-venv/releases/tag/v0.0.6}
 }
 ```
 
