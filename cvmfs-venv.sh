@@ -301,6 +301,7 @@ EOT
     # block and inject the PYTHONPATH if statement block directly after it
     # (2 lines later).
     _RECOVER_OLD_PYTHONPATH_LINE="$(($(sed -n '\|unset _OLD_VIRTUAL_PYTHONHOME|=' "${_venv_full_path}"/bin/activate) + 2))"
+    # FIXME: Make a cleaner implimentation
     if [ "${_text_editor}" == "ed" ]; then
         ed --silent "${_venv_full_path}/bin/activate" <<EOF
 ${_RECOVER_OLD_PYTHONPATH_LINE}i
@@ -324,6 +325,7 @@ EOF
     # if statement block and inject the PYTHONPATH reset if statement block directly
     # after it (2 lines later).
     _SET_PYTHONPATH_INSERT_LINE="$(($(sed -n '\|    unset PYTHONHOME|=' "${_venv_full_path}"/bin/activate) + 2))"
+    # FIXME: Make a cleaner implimentation
     if [ "${_text_editor}" == "ed" ]; then
         ed --silent "${_venv_full_path}/bin/activate" <<EOF
 ${_SET_PYTHONPATH_INSERT_LINE}i
@@ -346,6 +348,7 @@ EOF
     # Find the line number of the deactivate function and inject the cvmfs-venv-rebase directly after it
     # (1 line later).
     _RUN_REBASE_LINE="$(($(sed -n '\|deactivate ()|=' "${_venv_full_path}"/bin/activate) + 1))"
+    # FIXME: Make a cleaner implimentation
     if [ "${_text_editor}" == "ed" ]; then
         ed --silent "${_venv_full_path}/bin/activate" <<EOF
 ${_RUN_REBASE_LINE}i
@@ -368,6 +371,7 @@ EOF
     # Find the line number of the unset -f deactivate line in deactivate's destructive unset
     # and inject the cvmfs-venv-rebase reset directly after it (1 line later).
     _DESCTRUCTIVE_UNSET_LINE="$(($(sed -n '\|unset -f deactivate|=' "${_venv_full_path}"/bin/activate) + 1))"
+    # FIXME: Make a cleaner implimentation
     if [ "${_text_editor}" == "ed" ]; then
         ed --silent "${_venv_full_path}/bin/activate" <<EOF
 ${_DESCTRUCTIVE_UNSET_LINE}i
@@ -390,6 +394,7 @@ EOF
     # Find the line number of the unset -f cvmfs-venv-rebase line in deactivate's destructive unset
     # and inject the cvmfs-venv-rebase function directly after it (4 lines later).
     _CVMFS_VENV_REBASE_LINE="$(($(sed -n '\|unset -f cvmfs-venv-rebase|=' "${_venv_full_path}"/bin/activate) + 4))"
+    # FIXME: Make a cleaner implimentation
     if [ "${_text_editor}" == "ed" ]; then
         ed --silent "${_venv_full_path}/bin/activate" <<EOF
 ${_CVMFS_VENV_REBASE_LINE}i
