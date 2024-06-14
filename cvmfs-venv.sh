@@ -157,6 +157,18 @@ fi
 unset _setup_command
 unset _do_setup_atlas
 
+# determine text editor to use for complicated edits to the activate script
+if [ -x "$(command -v ed)" ]; then
+    # default to using 'ed'
+    _text_editor="ed"
+elif [ -x "$(command -v vi)" ]; then
+    # fall back to 'vi'
+    _text_editor="vi"
+else
+    echo "ERROR: Neither 'ed' nor 'vi' is installed. Please install one of them."
+    exit 1
+fi
+
 _venv_name="${1:-venv}"
 if [ ! -d "${_venv_name}" ]; then
     printf "# Creating new Python virtual environment '%s'\n" "${_venv_name}"
@@ -289,28 +301,133 @@ EOT
     # block and inject the PYTHONPATH if statement block directly after it
     # (2 lines later).
     _RECOVER_OLD_PYTHONPATH_LINE="$(($(sed -n '\|unset _OLD_VIRTUAL_PYTHONHOME|=' "${_venv_full_path}"/bin/activate) + 2))"
-    sed --in-place "${_RECOVER_OLD_PYTHONPATH_LINE}i ${_RECOVER_OLD_PYTHONPATH}" "${_venv_full_path}/bin/activate"
+    echo "_RECOVER_OLD_PYTHONPATH_LINE: ${_RECOVER_OLD_PYTHONPATH_LINE}"
+    echo "_RECOVER_OLD_PYTHONPATH: ${_RECOVER_OLD_PYTHONPATH}"
+
+    if [ "${_text_editor}" == "ed" ]; then
+        ed --silent "${_venv_full_path}/bin/activate" <<EOF
+${_RECOVER_OLD_PYTHONPATH_LINE}i
+${_RECOVER_OLD_PYTHONPATH}
+.
+wq
+EOF
+    else
+        # only supporting vim so don't need to check
+        _vi_script=$(mktemp)
+        cat <<EOF > "${_vi_script}"
+${_RECOVER_OLD_PYTHONPATH_LINE}i
+${_RECOVER_OLD_PYTHONPATH}
+.
+wq
+EOF
+
+        vi -es "${_venv_full_path}/bin/activate" < "${_vi_script}"
+    fi
 
     # Find the line number of the last line in deactivate's PYTHONHOME reset
     # if statement block and inject the PYTHONPATH reset if statement block directly
     # after it (2 lines later).
     _SET_PYTHONPATH_INSERT_LINE="$(($(sed -n '\|    unset PYTHONHOME|=' "${_venv_full_path}"/bin/activate) + 2))"
-    sed --in-place "${_SET_PYTHONPATH_INSERT_LINE}i ${_SET_PYTHONPATH}" "${_venv_full_path}/bin/activate"
+    echo "_SET_PYTHONPATH_INSERT_LINE: ${_SET_PYTHONPATH_INSERT_LINE}"
+    echo "_SET_PYTHONPATH: ${_SET_PYTHONPATH}"
+
+    if [ "${_text_editor}" == "ed" ]; then
+        ed --silent "${_venv_full_path}/bin/activate" <<EOF
+${_SET_PYTHONPATH_INSERT_LINE}i
+${_SET_PYTHONPATH}
+.
+wq
+EOF
+    else
+        # only supporting vim so don't need to check
+        _vi_script=$(mktemp)
+        cat <<EOF > "${_vi_script}"
+${_SET_PYTHONPATH_INSERT_LINE}i
+${_SET_PYTHONPATH}
+.
+wq
+EOF
+
+        vi -es "${_venv_full_path}/bin/activate" < "${_vi_script}"
+    fi
 
     # Find the line number of the deactivate function and inject the cvmfs-venv-rebase directly after it
     # (1 line later).
     _RUN_REBASE_LINE="$(($(sed -n '\|deactivate ()|=' "${_venv_full_path}"/bin/activate) + 1))"
-    sed --in-place "${_RUN_REBASE_LINE}i ${_RUN_REBASE}" "${_venv_full_path}/bin/activate"
+    echo "_RUN_REBASE_LINE: ${_RUN_REBASE_LINE}"
+    echo "_RUN_REBASE: ${_RUN_REBASE}"
+
+    if [ "${_text_editor}" == "ed" ]; then
+        ed --silent "${_venv_full_path}/bin/activate" <<EOF
+${_RUN_REBASE_LINE}i
+${_RUN_REBASE}
+.
+wq
+EOF
+    else
+        # only supporting vim so don't need to check
+        _vi_script=$(mktemp)
+        cat <<EOF > "${_vi_script}"
+${_RUN_REBASE_LINE}i
+${_RUN_REBASE}
+.
+wq
+EOF
+
+        vi -es "${_venv_full_path}/bin/activate" < "${_vi_script}"
+    fi
 
     # Find the line number of the unset -f deactivate line in deactivate's destructive unset
     # and inject the cvmfs-venv-rebase reset directly after it (1 line later).
     _DESCTRUCTIVE_UNSET_LINE="$(($(sed -n '\|unset -f deactivate|=' "${_venv_full_path}"/bin/activate) + 1))"
-    sed --in-place "${_DESCTRUCTIVE_UNSET_LINE}i ${_DESCTRUCTIVE_UNSET}" "${_venv_full_path}/bin/activate"
+    echo "_DESCTRUCTIVE_UNSET_LINE: ${_DESCTRUCTIVE_UNSET_LINE}"
+    echo "_DESCTRUCTIVE_UNSET: ${_DESCTRUCTIVE_UNSET}"
+
+    if [ "${_text_editor}" == "ed" ]; then
+        ed --silent "${_venv_full_path}/bin/activate" <<EOF
+${_DESCTRUCTIVE_UNSET_LINE}i
+${_DESCTRUCTIVE_UNSET}
+.
+wq
+EOF
+    else
+        # only supporting vim so don't need to check
+        _vi_script=$(mktemp)
+        cat <<EOF > "${_vi_script}"
+${_DESCTRUCTIVE_UNSET_LINE}i
+${_DESCTRUCTIVE_UNSET}
+.
+wq
+EOF
+
+        vi -es "${_venv_full_path}/bin/activate" < "${_vi_script}"
+    fi
 
     # Find the line number of the unset -f cvmfs-venv-rebase line in deactivate's destructive unset
     # and inject the cvmfs-venv-rebase function directly after it (4 lines later).
     _CVMFS_VENV_REBASE_LINE="$(($(sed -n '\|unset -f cvmfs-venv-rebase|=' "${_venv_full_path}"/bin/activate) + 4))"
-    sed --in-place "${_CVMFS_VENV_REBASE_LINE}i ${_CVMFS_VENV_REBASE}" "${_venv_full_path}/bin/activate"
+    echo "_CVMFS_VENV_REBASE_LINE: ${_CVMFS_VENV_REBASE_LINE}"
+    echo "_CVMFS_VENV_REBASE: ${_CVMFS_VENV_REBASE}"
+
+    if [ "${_text_editor}" == "ed" ]; then
+        ed --silent "${_venv_full_path}/bin/activate" <<EOF
+${_CVMFS_VENV_REBASE_LINE}i
+${_CVMFS_VENV_REBASE}
+.
+wq
+EOF
+    else
+        # only supporting vim so don't need to check
+        _vi_script=$(mktemp)
+        cat <<EOF > "${_vi_script}"
+${_CVMFS_VENV_REBASE_LINE}i
+${_CVMFS_VENV_REBASE}
+.
+wq
+EOF
+
+        vi -es "${_venv_full_path}/bin/activate" < "${_vi_script}"
+    fi
 
 unset _venv_full_path
 
@@ -355,3 +472,4 @@ unset _return_break
 unset _no_system_site_packages
 unset _no_update
 unset _no_uv
+unset _text_editor
