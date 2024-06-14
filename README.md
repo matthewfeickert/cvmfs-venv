@@ -43,37 +43,37 @@ Note: cvmfs-venv extends the Python venv module and so requires Python 3.3+.
 Examples:
 
     * Create a Python 3 virtual environment named 'lcg-example' with the Python
-    runtime provided by LCG view 104 on CentOS7.
+    runtime provided by LCG view 105 on AlmaLinux 9.
 
         setupATLAS -3
-        lsetup 'views LCG_104 x86_64-centos7-gcc12-opt'
+        lsetup 'views LCG_105 x86_64-el9-gcc12-opt'
         cvmfs-venv lcg-example
         . lcg-example/bin/activate
 
     * Create a Python 3 virtual environment named 'atlas-ab-example' with the
-    Python runtime provided by ATLAS AnalysisBase release v24.2.30.
+    Python runtime provided by ATLAS AnalysisBase release v25.2.15.
 
         setupATLAS -3
-        asetup AnalysisBase,24.2.30
+        asetup AnalysisBase,25.2.15
         cvmfs-venv atlas-ab-example
         . atlas-ab-example/bin/activate
 
     * Create a Python 3 virtual environment named 'venv' with whatever Python
-    runtime "\$(command -v python3)" evaluates to.
+    runtime "$(command -v python3)" evaluates to.
 
         cvmfs-venv
         . venv/bin/activate
 
-    * Setup LCG view 104 on CentOS7 and create a Python virtual environment
+    * Setup LCG view 105 on AlmaLinux 9 and create a Python virtual environment
     named 'lcg-example' using the Python 3.9 runtime it provides.
 
-        . cvmfs-venv --setup "lsetup 'views LCG_104 x86_64-centos7-gcc12-opt'" lcg-example
+        . cvmfs-venv --setup "lsetup 'views LCG_105 x86_64-el9-gcc12-opt'" lcg-example
 
-    * Setup ATLAS AnalysisBase release v24.2.30 and create a Python virtual
+    * Setup ATLAS AnalysisBase release v25.2.15 and create a Python virtual
     environment named 'atlas-ab-example' using the Python 3.9 runtime it
     provides.
 
-        . cvmfs-venv --setup 'asetup AnalysisBase,24.2.30' atlas-ab-example
+        . cvmfs-venv --setup 'asetup AnalysisBase,25.2.15' atlas-ab-example
 ```
 
 ### Example: Virtual environment with LCG view
