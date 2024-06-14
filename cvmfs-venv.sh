@@ -310,7 +310,7 @@ ${_RECOVER_OLD_PYTHONPATH}
 wq
 EOF
     else
-        # only supporting vim so don't need to check
+        # only supporting vi so don't need to check
         _vi_script=$(mktemp)
         cat <<EOF > "${_vi_script}"
 ${_RECOVER_OLD_PYTHONPATH_LINE}i
@@ -334,7 +334,7 @@ ${_SET_PYTHONPATH}
 wq
 EOF
     else
-        # only supporting vim so don't need to check
+        # only supporting vi so don't need to check
         _vi_script=$(mktemp)
         cat <<EOF > "${_vi_script}"
 ${_SET_PYTHONPATH_INSERT_LINE}i
@@ -357,7 +357,7 @@ ${_RUN_REBASE}
 wq
 EOF
     else
-        # only supporting vim so don't need to check
+        # only supporting vi so don't need to check
         _vi_script=$(mktemp)
         cat <<EOF > "${_vi_script}"
 ${_RUN_REBASE_LINE}i
@@ -380,7 +380,7 @@ ${_DESCTRUCTIVE_UNSET}
 wq
 EOF
     else
-        # only supporting vim so don't need to check
+        # only supporting vi so don't need to check
         _vi_script=$(mktemp)
         cat <<EOF > "${_vi_script}"
 ${_DESCTRUCTIVE_UNSET_LINE}i
@@ -403,7 +403,7 @@ ${_CVMFS_VENV_REBASE}
 wq
 EOF
     else
-        # only supporting vim so don't need to check
+        # only supporting vi so don't need to check
         _vi_script=$(mktemp)
         cat <<EOF > "${_vi_script}"
 ${_CVMFS_VENV_REBASE_LINE}i
