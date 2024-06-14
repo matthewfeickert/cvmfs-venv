@@ -43,37 +43,37 @@ Note: cvmfs-venv extends the Python venv module and so requires Python 3.3+.
 Examples:
 
     * Create a Python 3 virtual environment named 'lcg-example' with the Python
-    runtime provided by LCG view 104 on CentOS7.
+    runtime provided by LCG view 105 on AlmaLinux 9.
 
         setupATLAS -3
-        lsetup 'views LCG_104 x86_64-centos7-gcc12-opt'
+        lsetup 'views LCG_105 x86_64-el9-gcc12-opt'
         cvmfs-venv lcg-example
         . lcg-example/bin/activate
 
     * Create a Python 3 virtual environment named 'atlas-ab-example' with the
-    Python runtime provided by ATLAS AnalysisBase release v24.2.30.
+    Python runtime provided by ATLAS AnalysisBase release v25.2.15.
 
         setupATLAS -3
-        asetup AnalysisBase,24.2.30
+        asetup AnalysisBase,25.2.15
         cvmfs-venv atlas-ab-example
         . atlas-ab-example/bin/activate
 
     * Create a Python 3 virtual environment named 'venv' with whatever Python
-    runtime "\$(command -v python3)" evaluates to.
+    runtime "$(command -v python3)" evaluates to.
 
         cvmfs-venv
         . venv/bin/activate
 
-    * Setup LCG view 104 on CentOS7 and create a Python virtual environment
+    * Setup LCG view 105 on AlmaLinux 9 and create a Python virtual environment
     named 'lcg-example' using the Python 3.9 runtime it provides.
 
-        . cvmfs-venv --setup "lsetup 'views LCG_104 x86_64-centos7-gcc12-opt'" lcg-example
+        . cvmfs-venv --setup "lsetup 'views LCG_105 x86_64-el9-gcc12-opt'" lcg-example
 
-    * Setup ATLAS AnalysisBase release v24.2.30 and create a Python virtual
+    * Setup ATLAS AnalysisBase release v25.2.15 and create a Python virtual
     environment named 'atlas-ab-example' using the Python 3.9 runtime it
     provides.
 
-        . cvmfs-venv --setup 'asetup AnalysisBase,24.2.30' atlas-ab-example
+        . cvmfs-venv --setup 'asetup AnalysisBase,25.2.15' atlas-ab-example
 ```
 
 ### Example: Virtual environment with LCG view
@@ -88,7 +88,7 @@ $ ssh lxplus
 [feickert@lxplus924 ~]$ lsetup 'views LCG_105 x86_64-el9-gcc12-opt'
 ************************************************************************
 Requested:  views ...
- Setting up views LCG_104:x86_64-centos7-gcc12-opt ...
+ Setting up views LCG_105:x86_64-el9-gcc12-opt ...
 >>>>>>>>>>>>>>>>>>>>>>>>> Information for user <<<<<<<<<<<<<<<<<<<<<<<<<
 ************************************************************************
 [feickert@lxplus924 ~]$ cvmfs-venv lcg-example
@@ -223,12 +223,12 @@ This is done by injecting Bash snippets directly into the `bin/activate` script 
 * Once the virtual environment is setup and modified there is no additional dependency on the `cvmfs-venv` script that generated it.
    - While it saves time it is not needed. You can setup the environment again without it.
    ```console
-   $ . cvmfs-venv --setup "lsetup 'views LCG_104 x86_64-centos7-gcc12-opt'" venv
+   $ . cvmfs-venv --setup "lsetup 'views LCG_105 x86_64-el9-gcc12-opt'" venv
    ```
    vs.
    ```console
    $ setupATLAS -3
-   $ lsetup "views LCG_104 x86_64-centos7-gcc12-opt"
+   $ lsetup "views LCG_105 x86_64-el9-gcc12-opt"
    $ . venv/bin/activate
    ```
 * As the virtual environment  is **prepended** to `PYTHONPATH` all packages installed in the virtual environment are automatically given higher precedence over existing packages of the same name found in the LCG view.
@@ -240,7 +240,7 @@ This is done by injecting Bash snippets directly into the `bin/activate` script 
 
    ```console
    $ setupATLAS -3
-   $ lsetup "views LCG_104 x86_64-centos7-gcc12-opt"
+   $ lsetup "views LCG_105 x86_64-el9-gcc12-opt"
    $ lsetup "rucio -w"  # PYTHONPATH is altered by lsetup
    $ command -v rucio  # rucio is found
    $ . venv/bin/activate
@@ -253,7 +253,7 @@ This is done by injecting Bash snippets directly into the `bin/activate` script 
 
    ```console
    $ setupATLAS -3
-   $ lsetup "views LCG_104 x86_64-centos7-gcc12-opt"
+   $ lsetup "views LCG_105 x86_64-el9-gcc12-opt"
    $ . venv/bin/activate
    (venv) $ lsetup "rucio -w"  # PYTHONPATH is altered by lsetup
    (venv) $ command -v rucio  # rucio is found
