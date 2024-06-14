@@ -88,7 +88,7 @@ $ ssh lxplus
 [feickert@lxplus924 ~]$ lsetup 'views LCG_105 x86_64-el9-gcc12-opt'
 ************************************************************************
 Requested:  views ...
- Setting up views LCG_104:x86_64-centos7-gcc12-opt ...
+ Setting up views LCG_105:x86_64-el9-gcc12-opt ...
 >>>>>>>>>>>>>>>>>>>>>>>>> Information for user <<<<<<<<<<<<<<<<<<<<<<<<<
 ************************************************************************
 [feickert@lxplus924 ~]$ cvmfs-venv lcg-example
@@ -223,12 +223,12 @@ This is done by injecting Bash snippets directly into the `bin/activate` script 
 * Once the virtual environment is setup and modified there is no additional dependency on the `cvmfs-venv` script that generated it.
    - While it saves time it is not needed. You can setup the environment again without it.
    ```console
-   $ . cvmfs-venv --setup "lsetup 'views LCG_104 x86_64-centos7-gcc12-opt'" venv
+   $ . cvmfs-venv --setup "lsetup 'views LCG_105 x86_64-el9-gcc12-opt'" venv
    ```
    vs.
    ```console
    $ setupATLAS -3
-   $ lsetup "views LCG_104 x86_64-centos7-gcc12-opt"
+   $ lsetup "views LCG_105 x86_64-el9-gcc12-opt"
    $ . venv/bin/activate
    ```
 * As the virtual environment  is **prepended** to `PYTHONPATH` all packages installed in the virtual environment are automatically given higher precedence over existing packages of the same name found in the LCG view.
@@ -240,7 +240,7 @@ This is done by injecting Bash snippets directly into the `bin/activate` script 
 
    ```console
    $ setupATLAS -3
-   $ lsetup "views LCG_104 x86_64-centos7-gcc12-opt"
+   $ lsetup "views LCG_105 x86_64-el9-gcc12-opt"
    $ lsetup "rucio -w"  # PYTHONPATH is altered by lsetup
    $ command -v rucio  # rucio is found
    $ . venv/bin/activate
@@ -253,7 +253,7 @@ This is done by injecting Bash snippets directly into the `bin/activate` script 
 
    ```console
    $ setupATLAS -3
-   $ lsetup "views LCG_104 x86_64-centos7-gcc12-opt"
+   $ lsetup "views LCG_105 x86_64-el9-gcc12-opt"
    $ . venv/bin/activate
    (venv) $ lsetup "rucio -w"  # PYTHONPATH is altered by lsetup
    (venv) $ command -v rucio  # rucio is found
