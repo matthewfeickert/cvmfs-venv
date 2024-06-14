@@ -6,10 +6,10 @@ authors:
   given-names: "Matthew"
   orcid: "https://orcid.org/0000-0003-4124-7862"
   affiliation: "University of Wisconsin-Madison"
-title: "cvmfs-venv: v0.0.6"
-version: 0.0.6
+title: "cvmfs-venv: v0.0.7"
+version: 0.0.7
 doi: 10.5281/zenodo.7751033
-repository-code: "https://github.com/matthewfeickert/cvmfs-venv/releases/tag/v0.0.6"
+repository-code: "https://github.com/matthewfeickert/cvmfs-venv/releases/tag/v0.0.7"
 keywords:
   - python
   - cvmfs
