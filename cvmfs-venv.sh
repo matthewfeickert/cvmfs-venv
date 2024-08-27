@@ -75,6 +75,10 @@ while [ $# -gt 0 ]; do
             _setup_command="${2}"
             shift 2
             ;;
+        --keep-setup)
+            _keep-setup=false
+            shift
+            ;;
         --no-system-site-packages)
             _no_system_site_packages=true
             shift
@@ -154,7 +158,6 @@ elif [ -f "/release_setup.sh" ]; then
     . /release_setup.sh
 fi
 
-unset _setup_command
 unset _do_setup_atlas
 
 # determine text editor to use for complicated edits to the activate script
@@ -185,8 +188,17 @@ if [ ! -d "${_venv_name}" ]; then
     # for PYTHONHOME to also place the <venv>'s site-packages at the front
     # of PYTHONPATH so that they are ahead of the LCG view's packages in
     # priority.
-    _SET_PYTHONPATH=$(cat <<-EOT
+_SET_PYTHONPATH=$(cat <<-EOT
 # Added by https://github.com/matthewfeickert/cvmfs-venv
+EOT
+)
+
+if [ "${_keep-setup}" = true ]; then
+    _SET_PYTHONPATH+=$(eval echo "${_setup_command}")
+    _SET_PYTHONPATH+=$'\n'
+fi
+
+_SET_PYTHONPATH+=$(cat <<-EOT
 if [ -n "\${PYTHONPATH:-}" ] ; then
     _OLD_VIRTUAL_PYTHONPATH="\${PYTHONPATH:-}"
     unset PYTHONPATH
@@ -196,6 +208,8 @@ if [ -n "\${PYTHONPATH:-}" ] ; then
 fi
 EOT
 )
+
+    unset _setup_command
 
     # When deactivate is being run, reset the PYTHONPATH to what is was before
     # activation of the Python virtual environment. This ensures that the <venv>'s
