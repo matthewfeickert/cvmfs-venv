@@ -76,7 +76,7 @@ while [ $# -gt 0 ]; do
             shift 2
             ;;
         --keep-setup)
-            _keep-setup=false
+            _keep_setup=true
             shift
             ;;
         --no-system-site-packages)
@@ -188,15 +188,16 @@ if [ ! -d "${_venv_name}" ]; then
     # for PYTHONHOME to also place the <venv>'s site-packages at the front
     # of PYTHONPATH so that they are ahead of the LCG view's packages in
     # priority.
+    echo "${_keep_setup}"
 _SET_PYTHONPATH=$(cat <<-EOT
 # Added by https://github.com/matthewfeickert/cvmfs-venv
 EOT
 )
-
-if [ "${_keep-setup}" = true ]; then
-    _SET_PYTHONPATH+=$(eval echo "${_setup_command}")
-    _SET_PYTHONPATH+=$'\n'
-fi
+_SET_PYTHONPATH+=$'\n'
+    if [ "${_keep_setup}" = true ]; then
+_SET_PYTHONPATH+=$(eval echo "${_setup_command}")
+_SET_PYTHONPATH+=$'\n'
+    fi
 
 _SET_PYTHONPATH+=$(cat <<-EOT
 if [ -n "\${PYTHONPATH:-}" ] ; then
