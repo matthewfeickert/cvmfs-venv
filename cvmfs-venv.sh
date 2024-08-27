@@ -10,6 +10,11 @@ Usage: cvmfs-venv [-s|--setup] [--no-system-site-packages] [--no-update] [--no-u
 Options:
  -h --help      Print this help message
  -s --setup     String of setup options to be parsed
+ --keep-setup
+                Keep the setup command in the virtual environment's
+                activation script. This is useful for keeping the environment
+                set by the setup command in the virtual environment's 
+                activation script.
  --no-system-site-packages
                 The venv module '--system-site-packages' option is used by
                 default. While it is not recommended, this behavior can be
