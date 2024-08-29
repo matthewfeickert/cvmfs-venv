@@ -118,6 +118,13 @@ done
 # FIXME: Find smarter way to filter guard virtual environment creation
 if [ -z "${_return_break}" ]; then
 
+# Check if the keep-setup flag is set without a setup command
+if [ "$_keep_setup" = true ] && [ -z "$_setup_command" ]; then
+    echo "ERROR: The keep-setup flag is set, but no setup command is provided."
+    echo "       Please provide a setup command with the --setup flag or unset the keep-setup flag."
+    exit 1
+fi
+
 if [ ! -z "${_setup_command}" ]; then
     if [ -f "/release_setup.sh" ]; then
         # If in Linux container
@@ -193,7 +200,6 @@ if [ ! -d "${_venv_name}" ]; then
     # for PYTHONHOME to also place the <venv>'s site-packages at the front
     # of PYTHONPATH so that they are ahead of the LCG view's packages in
     # priority.
-    echo "${_keep_setup}"
 _SET_PYTHONPATH=$(cat <<-EOT
 # Added by https://github.com/matthewfeickert/cvmfs-venv
 EOT
@@ -216,6 +222,7 @@ EOT
 )
 
     unset _setup_command
+    unset _keep_setup
 
     # When deactivate is being run, reset the PYTHONPATH to what is was before
     # activation of the Python virtual environment. This ensures that the <venv>'s
