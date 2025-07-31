@@ -179,6 +179,7 @@ Required-by: cabinetry, coffea, servicex, uproot_browser
 
 A full listing of all programs used outside of Bash shell builtins are:
 * `cat`
+* `curl`
 * `ed` or `vi`
 * `find`
 * `readlink`
