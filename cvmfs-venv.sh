@@ -14,11 +14,11 @@ Options:
                 The venv module '--system-site-packages' option is used by
                 default. While it is not recommended, this behavior can be
                 disabled through use of this flag.
- --no-update    After venv creation don't update pip, setuptools, and wheel
-                to the latest releases. Use of this option is not recommended,
+ --no-update    After venv creation don't update pip and setuptools to the
+                latest releases. Use of this option is not recommended,
                 but is faster.
  --no-uv        After venv creation don't install uv and use it to update pip,
-                setuptools, and wheel. By default, uv is installed.
+                and setuptools. By default, uv is installed.
 
 Note: cvmfs-venv extends the Python venv module and so requires Python 3.3+.
 
@@ -438,14 +438,14 @@ if [ -z "${_no_uv}" ]; then
     python -m pip --quiet --no-cache-dir install --upgrade uv &> /dev/null
 fi
 
-# Get latest pip, setuptools, wheel
+# Get latest pip and setuptools
 if [ -z "${_no_update}" ]; then
     # Use uv by default
     if [ -z "${_no_uv}" ]; then
-        uv pip --quiet install --upgrade pip setuptools wheel
+        uv pip --quiet install --upgrade pip setuptools
     else
         # Hide not-real errors from CVMFS by sending to /dev/null
-        python -m pip --quiet --no-cache-dir install --upgrade pip setuptools wheel &> /dev/null
+        python -m pip --quiet --no-cache-dir install --upgrade pip setuptools &> /dev/null
     fi
 fi
 
