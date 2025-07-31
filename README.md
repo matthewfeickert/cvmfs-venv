@@ -32,11 +32,11 @@ Options:
                 The venv module '--system-site-packages' option is used by
                 default. While it is not recommended, this behavior can be
                 disabled through use of this flag.
- --no-update    After venv creation don't update pip, setuptools, and wheel
-                to the latest releases. Use of this option is not recommended,
+ --no-update    After venv creation don't update pip and setuptools to the
+                latest releases. Use of this option is not recommended,
                 but is faster.
  --no-uv        After venv creation don't install uv and use it to update pip,
-                setuptools, and wheel. By default, uv is installed.
+                and setuptools. By default, uv is installed.
 
 Note: cvmfs-venv extends the Python venv module and so requires Python 3.3+.
 
@@ -100,7 +100,6 @@ Package    Version
 pip        24.0
 setuptools 69.5.1
 uv         0.1.42
-wheel      0.43.0
 (lcg-example) [feickert@lxplus924 ~]$ python -m pip show hepdata-lib  # Still have full LCG view
 Name: hepdata-lib
 Version: 0.12.0
@@ -145,7 +144,6 @@ pip                24.0
 setuptools         69.5.1
 typing_extensions  4.11.0
 uv                 0.1.42
-wheel              0.43.0
 zipp               3.18.1
 (lcg-example) [feickert@lxplus924 ~]$ uv pip list  # uv will show the same view
 Package            Version
@@ -160,7 +158,6 @@ pip                24.0
 setuptools         69.5.1
 typing-extensions  4.11.0
 uv                 0.1.42
-wheel              0.43.0
 zipp               3.18.1
 (lcg-example) [feickert@lxplus924 ~]$ deactivate  # Resets PYTHONPATH given added hooks
 [feickert@lxplus924 ~]$ python -m pip show awkward  # Get CVMFS's old version
