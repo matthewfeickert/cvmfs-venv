@@ -435,7 +435,29 @@ fi
 
 # Install uv by default
 if [ -z "${_no_uv}" ]; then
-    python -m pip --quiet --no-cache-dir install --upgrade uv &> /dev/null
+    # Ensure that uv is installed
+    if ! command -v uv >/dev/null 2>&1; then
+        echo "# Installing uv"
+        # Check if pixi exists
+        if command -v pixi >/dev/null 2>&1; then
+            # Use pixi global
+            echo "# Installing uv with pixi global"
+            echo "# You can update uv with 'pixi global update uv'"
+            pixi global install uv
+        else
+            # Install from https://astral.sh/
+            echo "# Installing from https://astral.sh/"
+            echo "# You can update uv with 'uv self update'"
+            curl -LsSf https://astral.sh/uv/install.sh | sh
+        fi
+
+        # Ensure ~/.local/bin is on the PATH for uv
+        if [[ ":$PATH:" != *":${HOME}/.local/bin:"* ]]; then
+            export PATH="${HOME}/.local/bin:${PATH}"
+        fi
+        # Enable uv shell autocompletion
+        eval "$(uv generate-shell-completion bash)"
+    fi
 fi
 
 # Get latest pip and setuptools

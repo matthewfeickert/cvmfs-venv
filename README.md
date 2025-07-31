@@ -99,7 +99,6 @@ Package    Version
 ---------- -------
 pip        24.0
 setuptools 69.5.1
-uv         0.1.42
 (lcg-example) [feickert@lxplus924 ~]$ python -m pip show hepdata-lib  # Still have full LCG view
 Name: hepdata-lib
 Version: 0.12.0
@@ -143,7 +142,6 @@ packaging          24.0
 pip                24.0
 setuptools         69.5.1
 typing_extensions  4.11.0
-uv                 0.1.42
 zipp               3.18.1
 (lcg-example) [feickert@lxplus924 ~]$ uv pip list  # uv will show the same view
 Package            Version
@@ -157,7 +155,6 @@ packaging          24.0
 pip                24.0
 setuptools         69.5.1
 typing-extensions  4.11.0
-uv                 0.1.42
 zipp               3.18.1
 (lcg-example) [feickert@lxplus924 ~]$ deactivate  # Resets PYTHONPATH given added hooks
 [feickert@lxplus924 ~]$ python -m pip show awkward  # Get CVMFS's old version
@@ -179,6 +176,7 @@ Required-by: cabinetry, coffea, servicex, uproot_browser
 
 A full listing of all programs used outside of Bash shell builtins are:
 * `cat`
+* `curl`
 * `ed` or `vi`
 * `find`
 * `readlink`
