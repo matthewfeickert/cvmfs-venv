@@ -281,6 +281,21 @@ This can result in packages from the LCG view meeting requirements of other depe
 * Having all of the environment manipulation happen inside of the `venv`'s `bin/activate` script means that the virtual environment needs to be activated after any LCG view or ATLAS software (which make `PYTHONPATH` not empty) to trigger `PYTHONPATH` manipulation.
 This essentially means that the virtual environment must not be activated first in any setup script.
 
+## Development
+
+The behavioural tests need no network access and create their environments with `--no-uv --no-update`:
+
+```console
+$ tests/test_cvmfs_venv.sh            # uses the python3 on PATH
+$ tests/test_cvmfs_venv.sh python3.9  # or a specific interpreter
+```
+
+Linting (ShellCheck for the shell scripts, zizmor for the GitHub Actions workflow) runs through [pre-commit](https://pre-commit.com/) hooks:
+
+```console
+$ prek run --all-files  # or: pre-commit run --all-files
+```
+
 ## Citation
 
 The preferred BibTeX entry for citation of `cvmfs-venv` is
