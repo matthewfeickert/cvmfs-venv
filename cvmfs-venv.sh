@@ -10,6 +10,11 @@ Usage: cvmfs-venv [-s|--setup] [--no-system-site-packages] [--no-update] [--no-u
 Options:
  -h --help      Print this help message
  -s --setup     String of setup options to be parsed
+ --keep-setup
+                Keep the setup command in the virtual environment's
+                activation script. This is useful for keeping the environment
+                set by the setup command in the virtual environment's 
+                activation script.
  --no-system-site-packages
                 The venv module '--system-site-packages' option is used by
                 default. While it is not recommended, this behavior can be
@@ -75,6 +80,10 @@ while [ $# -gt 0 ]; do
             _setup_command="${2}"
             shift 2
             ;;
+        --keep-setup)
+            _keep_setup=true
+            shift
+            ;;
         --no-system-site-packages)
             _no_system_site_packages=true
             shift
@@ -108,6 +117,13 @@ done
 
 # FIXME: Find smarter way to filter guard virtual environment creation
 if [ -z "${_return_break}" ]; then
+
+# Check if the keep-setup flag is set without a setup command
+if [ "$_keep_setup" = true ] && [ -z "$_setup_command" ]; then
+    echo "ERROR: The keep-setup flag is set, but no setup command is provided."
+    echo "       Please provide a setup command with the --setup flag or unset the keep-setup flag."
+    exit 1
+fi
 
 if [ ! -z "${_setup_command}" ]; then
     if [ -f "/release_setup.sh" ]; then
@@ -154,7 +170,6 @@ elif [ -f "/release_setup.sh" ]; then
     . /release_setup.sh
 fi
 
-unset _setup_command
 unset _do_setup_atlas
 
 # determine text editor to use for complicated edits to the activate script
@@ -185,8 +200,17 @@ if [ ! -d "${_venv_name}" ]; then
     # for PYTHONHOME to also place the <venv>'s site-packages at the front
     # of PYTHONPATH so that they are ahead of the LCG view's packages in
     # priority.
-    _SET_PYTHONPATH=$(cat <<-EOT
+_SET_PYTHONPATH=$(cat <<-EOT
 # Added by https://github.com/matthewfeickert/cvmfs-venv
+EOT
+)
+_SET_PYTHONPATH+=$'\n'
+    if [ "${_keep_setup}" = true ]; then
+_SET_PYTHONPATH+=$(eval echo "${_setup_command}")
+_SET_PYTHONPATH+=$'\n'
+    fi
+
+_SET_PYTHONPATH+=$(cat <<-EOT
 if [ -n "\${PYTHONPATH:-}" ] ; then
     _OLD_VIRTUAL_PYTHONPATH="\${PYTHONPATH:-}"
     unset PYTHONPATH
@@ -196,6 +220,9 @@ if [ -n "\${PYTHONPATH:-}" ] ; then
 fi
 EOT
 )
+
+    unset _setup_command
+    unset _keep_setup
 
     # When deactivate is being run, reset the PYTHONPATH to what is was before
     # activation of the Python virtual environment. This ensures that the <venv>'s
