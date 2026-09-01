@@ -162,10 +162,47 @@ run_case "sourcing works under set -e and set -u" '
     check [ -n "${VIRTUAL_ENV}" ]
 '
 
-run_case "a venv name containing a space gets all hooks" '
-    . "${CVMFS_VENV}" --no-uv --no-update "my venv" > /dev/null
+run_case "a venv name containing a space gets all hooks and a correct PYTHONPATH" '
+    "${CVMFS_VENV}" --no-uv --no-update "my venv" > /dev/null
     check [ $? -eq 0 ]
     check [ "$(grep -c "Added by https://github.com/matthewfeickert/cvmfs-venv" "my venv/bin/activate")" -eq 5 ]
+    export PYTHONPATH=/fake/lcg
+    . "my venv/bin/activate"
+    check [ "${VIRTUAL_ENV:-}" = "${PWD}/my venv" ]
+    _site_packages="$(python -c "import sysconfig; print(sysconfig.get_paths()[\"purelib\"])")"
+    check [ "${PYTHONPATH}" = "${_site_packages}:/fake/lcg" ]
+'
+
+run_case "a venv below a directory containing a space gets a correct PYTHONPATH" '
+    mkdir "dir with space" && cd "dir with space"
+    "${CVMFS_VENV}" --no-uv --no-update tv > /dev/null
+    export PYTHONPATH=/fake/lcg
+    . tv/bin/activate
+    check [ "${VIRTUAL_ENV:-}" = "${PWD}/tv" ]
+    _site_packages="$(python -c "import sysconfig; print(sysconfig.get_paths()[\"purelib\"])")"
+    check [ "${PYTHONPATH}" = "${_site_packages}:/fake/lcg" ]
+    # An empty PYTHONPATH element would put the working directory on sys.path.
+    case "${PYTHONPATH}" in :*|*::*|*:) echo "empty PYTHONPATH element: ${PYTHONPATH}"; exit 1 ;; esac
+'
+
+run_case "activate bakes in the site-packages path and does no filesystem search" '
+    "${CVMFS_VENV}" --no-uv --no-update tv > /dev/null
+    check grep -q "^    _VIRTUAL_SITE_PACKAGES=\"\${VIRTUAL_ENV}/lib/python" tv/bin/activate
+    if grep -q "find " tv/bin/activate; then echo "activate still runs find"; exit 1; fi
+    if grep -nE "[[:space:]]+$" tv/bin/activate; then echo "activate has trailing whitespace"; exit 1; fi
+'
+
+run_case "an unrecognised activate template fails loudly instead of patching the wrong lines" '
+    # Wrap python3 so that the venv it creates has a renamed deactivate anchor.
+    mkdir wrap
+    printf "#!/bin/bash\n\"%s\" \"\$@\"; _status=\$?\nif [ \"\${1:-}\" = -m ] && [ \"\${2:-}\" = venv ]; then sed -i \"s/^deactivate () {/deactivate() {/\" \"\${!#}/bin/activate\"; fi\nexit \${_status}\n" "$(command -v python3)" > wrap/python3
+    chmod +x wrap/python3
+    export PATH="${PWD}/wrap:${PATH}"
+    _output="$("${CVMFS_VENV}" --no-uv --no-update tv 2>&1)"
+    _status=$?
+    check [ "${_status}" -eq 1 ]
+    check grep -q "deactivate ()" <<< "${_output}"
+    check grep -q "^ERROR: Failed to add the cvmfs-venv hooks" <<< "${_output}"
 '
 
 run_case "a double dash ends option parsing" '

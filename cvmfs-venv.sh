@@ -66,21 +66,53 @@ EOF
     return 0
 }
 
+# _cvmfs_venv_insert <python> <file> <anchor> <offset> <text>
+#
+# Insert <text> into <file> before the line that is <offset> lines after the
+# single line containing <anchor>. Fails, leaving <file> untouched, if the
+# anchor does not match exactly one line, so a change to venv's activate
+# template is reported instead of silently producing a broken environment.
+# Runs under the virtual environment's own Python, which is always present,
+# so no external editor is needed. A trailing newline on <text> gives a
+# blank line after the inserted block.
+_cvmfs_venv_insert () {
+    CVMFS_VENV_ANCHOR="${3}" CVMFS_VENV_OFFSET="${4}" CVMFS_VENV_TEXT="${5}" \
+        "${1}" -I - "${2}" <<'PY'
+import os
+import sys
+
+path = sys.argv[1]
+anchor = os.environ["CVMFS_VENV_ANCHOR"]
+offset = int(os.environ["CVMFS_VENV_OFFSET"])
+text = os.environ["CVMFS_VENV_TEXT"] + "\n"
+
+with open(path, encoding="utf-8", errors="surrogateescape") as activate:
+    lines = activate.readlines()
+hits = [index for index, line in enumerate(lines) if anchor in line]
+if len(hits) != 1:
+    sys.exit(
+        "ERROR: expected exactly one line containing %r in %s, found %d"
+        % (anchor, path, len(hits))
+    )
+lines.insert(hits[0] + offset, text)
+with open(path, "w", encoding="utf-8", errors="surrogateescape") as activate:
+    activate.writelines(lines)
+PY
+}
+
 _cvmfs_venv_main () {
     local _setup_command=""
     local _no_system_site_packages=""
     local _no_update=""
     local _no_uv=""
     local _do_setup_atlas=""
-    local _text_editor=""
     local _venv_name=""
     local _venv_full_path=""
-    local _vi_script=""
-    local nl=""
+    local _venv_python=""
+    local _activate=""
+    local _site_packages=""
     local _SET_PYTHONPATH="" _RECOVER_OLD_PYTHONPATH="" _RUN_REBASE=""
-    local _DESCTRUCTIVE_UNSET="" _CVMFS_VENV_REBASE=""
-    local _SET_PYTHONPATH_INSERT_LINE="" _RECOVER_OLD_PYTHONPATH_LINE=""
-    local _RUN_REBASE_LINE="" _DESCTRUCTIVE_UNSET_LINE="" _CVMFS_VENV_REBASE_LINE=""
+    local _DESTRUCTIVE_UNSET="" _CVMFS_VENV_REBASE=""
 
     # CLI API
     while [ $# -gt 0 ]; do
@@ -173,18 +205,6 @@ _cvmfs_venv_main () {
     # Ensure that pip can't install outside a virtual environment
     export PIP_REQUIRE_VIRTUALENV=true
 
-    # determine text editor to use for complicated edits to the activate script
-    if [ -x "$(command -v ed)" ]; then
-        # default to using 'ed'
-        _text_editor="ed"
-    elif [ -x "$(command -v vi)" ]; then
-        # fall back to 'vi'
-        _text_editor="vi"
-    else
-        echo "ERROR: Neither 'ed' nor 'vi' is installed. Please install one of them." >&2
-        return 1
-    fi
-
     _venv_name="${1:-venv}"
     if [ ! -d "${_venv_name}" ]; then
         printf "# Creating new Python virtual environment '%s'\n" "${_venv_name}"
@@ -195,20 +215,26 @@ _cvmfs_venv_main () {
             python3 -m venv "${_venv_name}"
         fi
         _venv_full_path="$(readlink -f "${_venv_name}")"
+        _venv_python="${_venv_full_path}/bin/python"
+        _activate="${_venv_full_path}/bin/activate"
+
+        # The environment's site-packages directory (relative to the
+        # environment) is fixed here, at creation time, just as venv fixes
+        # VIRTUAL_ENV in activate. Activation then needs no filesystem search.
+        _site_packages="$("${_venv_python}" -I -c 'import os, sys, sysconfig; print(os.path.relpath(sysconfig.get_paths()["purelib"], sys.prefix))')" || return 1
 
         # When setting up the Python virtual environment shell variables in the
         # main section of the <venv>/bin/activate script, copy the pattern used
         # for PYTHONHOME to also place the <venv>'s site-packages at the front
         # of PYTHONPATH so that they are ahead of the LCG view's packages in
         # priority.
-        _SET_PYTHONPATH=$(cat <<-EOT
+        _SET_PYTHONPATH=$(cat <<EOT
 # Added by https://github.com/matthewfeickert/cvmfs-venv
 if [ -n "\${PYTHONPATH:-}" ] ; then
     _OLD_VIRTUAL_PYTHONPATH="\${PYTHONPATH:-}"
-    unset PYTHONPATH
-    unset _VIRTUAL_SITE_PACKAGES
-    _VIRTUAL_SITE_PACKAGES="\$(find \${VIRTUAL_ENV}/lib/ -maxdepth 2 -type d -name site-packages)"
-    export PYTHONPATH="\${_VIRTUAL_SITE_PACKAGES}:\${_OLD_VIRTUAL_PYTHONPATH}"
+    _VIRTUAL_SITE_PACKAGES="\${VIRTUAL_ENV}/${_site_packages}"
+    PYTHONPATH="\${_VIRTUAL_SITE_PACKAGES}:\${_OLD_VIRTUAL_PYTHONPATH}"
+    export PYTHONPATH
 fi
 EOT
 )
@@ -218,7 +244,7 @@ EOT
         # site-packages are removed from PYTHONPATH so there is no collision if
         # attempting to use a different virtual environment or if attempting to use
         # the LCG view's packages.
-        _RECOVER_OLD_PYTHONPATH=$(cat <<-EOT
+        _RECOVER_OLD_PYTHONPATH=$(cat <<EOT
     # Added by https://github.com/matthewfeickert/cvmfs-venv
     if [ -n "\${_OLD_VIRTUAL_PYTHONPATH:-}" ] ; then
         PYTHONPATH="\${_OLD_VIRTUAL_PYTHONPATH:-}"
@@ -234,17 +260,15 @@ EOT
         # PYTHONPATH so that software loaded with CVMFS is still available when
         # the virtual environment is deactivated.
         # c.f. https://unix.stackexchange.com/a/534073/275785
-        nl=$'\n'
-        _RUN_REBASE=$(cat <<-EOT
+        _RUN_REBASE=$(cat <<EOT
     # Added by https://github.com/matthewfeickert/cvmfs-venv
     cvmfs-venv-rebase  # Keep lsetup PATHs added while venv active
-    $nl
 EOT
 )
 
         # If the deactivate is being run in a destructive manner (i.e., anytime that isn't
         # the sanitizing pass through on activate) then unset cvmfs-venv-rebase.
-        _DESCTRUCTIVE_UNSET=$(cat <<-EOT
+        _DESTRUCTIVE_UNSET=$(cat <<EOT
         # Added by https://github.com/matthewfeickert/cvmfs-venv
         unset -f cvmfs-venv-rebase
 EOT
@@ -256,7 +280,7 @@ EOT
         # * Update the value of _OLD_VIRTUAL_PATH and _OLD_VIRTUAL_PYTHONPATH
         # to allow for software added to them from inside the virtual environment
         # to be usable outside.
-        _CVMFS_VENV_REBASE=$(cat <<-EOT
+        _CVMFS_VENV_REBASE=$(cat <<EOT
 # Added by https://github.com/matthewfeickert/cvmfs-venv
 cvmfs-venv-rebase () {
     # Reorder the PATH so that the virtual environment bin directory tree
@@ -289,7 +313,7 @@ cvmfs-venv-rebase () {
     # is at the head.
     if [ -n "\${_VIRTUAL_SITE_PACKAGES:-}" ] ; then
         # Bracket with ":" for easier parsing
-        _PYTHONPATH=":\${PYTHONPATH}:"
+        _PYTHONPATH=":\${PYTHONPATH:-}:"
         # Strip _VIRTUAL_SITE_PACKAGES from PYTHONPATH
         _PYTHONPATH="\${_PYTHONPATH//:\${_VIRTUAL_SITE_PACKAGES}:/:}"
         # Remove ":" from start and end of PYTHONPATH
@@ -312,121 +336,25 @@ cvmfs-venv-rebase () {
 EOT
 )
 
-        # Find the line number of the last line in the PYTHONHOME set if statement
-        # block and inject the PYTHONPATH if statement block directly after it
-        # (2 lines later).
-        _RECOVER_OLD_PYTHONPATH_LINE="$(($(sed -n '\|unset _OLD_VIRTUAL_PYTHONHOME|=' "${_venv_full_path}"/bin/activate) + 2))"
-        # FIXME: Make a cleaner implimentation
-        if [ "${_text_editor}" == "ed" ]; then
-            ed --silent "${_venv_full_path}/bin/activate" <<EOF
-${_RECOVER_OLD_PYTHONPATH_LINE}i
-${_RECOVER_OLD_PYTHONPATH}
-.
-wq
-EOF
-        else
-            # only supporting vi so don't need to check
-            _vi_script=$(mktemp)
-            cat <<EOF > "${_vi_script}"
-${_RECOVER_OLD_PYTHONPATH_LINE}i
-${_RECOVER_OLD_PYTHONPATH}
-.
-wq
-EOF
-            vi -es "${_venv_full_path}/bin/activate" < "${_vi_script}"
-        fi
-
-        # Find the line number of the last line in deactivate's PYTHONHOME reset
-        # if statement block and inject the PYTHONPATH reset if statement block directly
-        # after it (2 lines later).
-        _SET_PYTHONPATH_INSERT_LINE="$(($(sed -n '\|    unset PYTHONHOME|=' "${_venv_full_path}"/bin/activate) + 2))"
-        # FIXME: Make a cleaner implimentation
-        if [ "${_text_editor}" == "ed" ]; then
-            ed --silent "${_venv_full_path}/bin/activate" <<EOF
-${_SET_PYTHONPATH_INSERT_LINE}i
-${_SET_PYTHONPATH}
-.
-wq
-EOF
-        else
-            # only supporting vi so don't need to check
-            _vi_script=$(mktemp)
-            cat <<EOF > "${_vi_script}"
-${_SET_PYTHONPATH_INSERT_LINE}i
-${_SET_PYTHONPATH}
-.
-wq
-EOF
-            vi -es "${_venv_full_path}/bin/activate" < "${_vi_script}"
-        fi
-
-        # Find the line number of the deactivate function and inject the cvmfs-venv-rebase directly after it
-        # (1 line later).
-        _RUN_REBASE_LINE="$(($(sed -n '\|deactivate ()|=' "${_venv_full_path}"/bin/activate) + 1))"
-        # FIXME: Make a cleaner implimentation
-        if [ "${_text_editor}" == "ed" ]; then
-            ed --silent "${_venv_full_path}/bin/activate" <<EOF
-${_RUN_REBASE_LINE}i
-${_RUN_REBASE}
-.
-wq
-EOF
-        else
-            # only supporting vi so don't need to check
-            _vi_script=$(mktemp)
-            cat <<EOF > "${_vi_script}"
-${_RUN_REBASE_LINE}i
-${_RUN_REBASE}
-.
-wq
-EOF
-            vi -es "${_venv_full_path}/bin/activate" < "${_vi_script}"
-        fi
-
-        # Find the line number of the unset -f deactivate line in deactivate's destructive unset
-        # and inject the cvmfs-venv-rebase reset directly after it (1 line later).
-        _DESCTRUCTIVE_UNSET_LINE="$(($(sed -n '\|unset -f deactivate|=' "${_venv_full_path}"/bin/activate) + 1))"
-        # FIXME: Make a cleaner implimentation
-        if [ "${_text_editor}" == "ed" ]; then
-            ed --silent "${_venv_full_path}/bin/activate" <<EOF
-${_DESCTRUCTIVE_UNSET_LINE}i
-${_DESCTRUCTIVE_UNSET}
-.
-wq
-EOF
-        else
-            # only supporting vi so don't need to check
-            _vi_script=$(mktemp)
-            cat <<EOF > "${_vi_script}"
-${_DESCTRUCTIVE_UNSET_LINE}i
-${_DESCTRUCTIVE_UNSET}
-.
-wq
-EOF
-            vi -es "${_venv_full_path}/bin/activate" < "${_vi_script}"
-        fi
-
-        # Find the line number of the unset -f cvmfs-venv-rebase line in deactivate's destructive unset
-        # and inject the cvmfs-venv-rebase function directly after it (4 lines later).
-        _CVMFS_VENV_REBASE_LINE="$(($(sed -n '\|unset -f cvmfs-venv-rebase|=' "${_venv_full_path}"/bin/activate) + 4))"
-        # FIXME: Make a cleaner implimentation
-        if [ "${_text_editor}" == "ed" ]; then
-            ed --silent "${_venv_full_path}/bin/activate" <<EOF
-${_CVMFS_VENV_REBASE_LINE}i
-${_CVMFS_VENV_REBASE}
-.
-wq
-EOF
-        else
-            # only supporting vi so don't need to check
-            _vi_script=$(mktemp)
-            cat <<EOF > "${_vi_script}"
-${_CVMFS_VENV_REBASE_LINE}i
-${_CVMFS_VENV_REBASE}
-.
-wq
-EOF
-            vi -es "${_venv_full_path}/bin/activate" < "${_vi_script}"
+        # Insert the snippets at positions relative to venv's own PYTHONHOME
+        # handling and deactivate function. Each anchor must match exactly one
+        # line of activate; otherwise creation fails rather than leaving a
+        # silently broken environment behind.
+        if ! {
+            # After the PYTHONHOME reset block inside deactivate
+            _cvmfs_venv_insert "${_venv_python}" "${_activate}" 'unset _OLD_VIRTUAL_PYTHONHOME' 2 "${_RECOVER_OLD_PYTHONPATH}" &&
+            # After the PYTHONHOME unset block in the main body
+            _cvmfs_venv_insert "${_venv_python}" "${_activate}" '    unset PYTHONHOME' 2 "${_SET_PYTHONPATH}" &&
+            # First statement of deactivate, followed by a blank line
+            _cvmfs_venv_insert "${_venv_python}" "${_activate}" 'deactivate ()' 1 "${_RUN_REBASE}"$'\n' &&
+            # Alongside deactivate's own self destruct
+            _cvmfs_venv_insert "${_venv_python}" "${_activate}" 'unset -f deactivate' 1 "${_DESTRUCTIVE_UNSET}" &&
+            # After the closing brace of deactivate, before it is first called
+            _cvmfs_venv_insert "${_venv_python}" "${_activate}" 'unset -f cvmfs-venv-rebase' 4 "${_CVMFS_VENV_REBASE}"$'\n'
+        }; then
+            echo "ERROR: Failed to add the cvmfs-venv hooks to '${_activate}'." >&2
+            echo "       Remove '${_venv_name}' before trying again." >&2
+            return 1
         fi
     fi
 
@@ -479,7 +407,7 @@ EOF
 # sourced this file) while preserving the exit status of _cvmfs_venv_main.
 # A function may unset itself in bash; it still returns normally.
 _cvmfs_venv_cleanup () {
-    unset -f _cvmfs_venv_help _cvmfs_venv_main _cvmfs_venv_cleanup
+    unset -f _cvmfs_venv_help _cvmfs_venv_insert _cvmfs_venv_main _cvmfs_venv_cleanup
     return "${1}"
 }
 

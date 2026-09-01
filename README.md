@@ -176,12 +176,9 @@ Required-by: cabinetry, coffea, servicex, uproot_browser
 
 A full listing of all programs used outside of Bash shell builtins are:
 * `cat`
-* `curl`
-* `ed` or `vi`
-* `find`
 * `readlink`
-* `sed`
-* Python 3.3+ with `pip`
+* Python 3.3+ with `pip` (the environment's own Python adds the hooks to its `bin/activate`)
+* `curl` or `pixi`, only to install `uv` (see `--no-uv`)
 
 ## Why is this needed?
 
