@@ -1,0 +1,69 @@
+# Release bump with bump-my-version (https://github.com/callowayproject/bump-my-version):
+#
+#     uvx bump-my-version bump patch
+#
+# updates every place the version is written, stamps the release date, and
+# creates the "Bump version" commit and the v<version> tag.
+[tool.bumpversion]
+current_version = "0.0.8"
+commit = true
+tag = true
+tag_name = "v{new_version}"
+message = "Bump version: {current_version} → {new_version}"
+
+[[tool.bumpversion.files]]
+filename = "CITATION.cff"
+search = "version: {current_version}"
+replace = "version: {new_version}"
+
+[[tool.bumpversion.files]]
+filename = "CITATION.cff"
+search = "cvmfs-venv: v{current_version}"
+replace = "cvmfs-venv: v{new_version}"
+
+[[tool.bumpversion.files]]
+filename = "CITATION.cff"
+search = "releases/tag/v{current_version}"
+replace = "releases/tag/v{new_version}"
+
+[[tool.bumpversion.files]]
+filename = "CITATION.cff"
+regex = true
+search = "date-released: \\d{{4}}-\\d{{2}}-\\d{{2}}"
+replace = "date-released: {now:%Y-%m-%d}"
+
+[[tool.bumpversion.files]]
+filename = "README.md"
+search = "cvmfs-venv: v{current_version}"
+replace = "cvmfs-venv: v{new_version}"
+
+[[tool.bumpversion.files]]
+filename = "README.md"
+search = "version = {{{current_version}}}"
+replace = "version = {{{new_version}}}"
+
+[[tool.bumpversion.files]]
+filename = "README.md"
+regex = true
+search = "year = \\{{\\d{{4}}\\}}"
+replace = "year = {{{now:%Y}}}"
+
+[[tool.bumpversion.files]]
+filename = "README.md"
+search = "releases/tag/v{current_version}"
+replace = "releases/tag/v{new_version}"
+
+[[tool.bumpversion.files]]
+filename = "README.md"
+search = "cvmfs-venv/v{current_version}/cvmfs-venv.sh"
+replace = "cvmfs-venv/v{new_version}/cvmfs-venv.sh"
+
+[[tool.bumpversion.files]]
+filename = "examples/analysis-base-example.sh"
+search = "cvmfs-venv/v{current_version}/cvmfs-venv.sh"
+replace = "cvmfs-venv/v{new_version}/cvmfs-venv.sh"
+
+[[tool.bumpversion.files]]
+filename = "examples/lcg-example.sh"
+search = "cvmfs-venv/v{current_version}/cvmfs-venv.sh"
+replace = "cvmfs-venv/v{new_version}/cvmfs-venv.sh"

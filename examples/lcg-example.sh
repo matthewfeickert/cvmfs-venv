@@ -4,12 +4,11 @@
 # Install cvmfs-venv
 mkdir -p ~/.local/bin
 export PATH=~/.local/bin:"${PATH}"  # If ~/.local/bin not on PATH already
-curl -sL https://raw.githubusercontent.com/matthewfeickert/cvmfs-venv/main/cvmfs-venv.sh -o ~/.local/bin/cvmfs-venv
-chmod +x ~/.local/bin/cvmfs-venv
+curl -sSfL https://raw.githubusercontent.com/matthewfeickert/cvmfs-venv/v0.0.8/cvmfs-venv.sh -o ~/.local/bin/cvmfs-venv && chmod +x ~/.local/bin/cvmfs-venv
 
-# Guard against this being run in a subshell
+# setupATLAS -3 --quiet, sourced directly as the alias is not defined in scripts
 export ATLAS_LOCAL_ROOT_BASE=/cvmfs/atlas.cern.ch/repo/ATLASLocalRootBase
-. "${ATLAS_LOCAL_ROOT_BASE}/user/atlasLocalSetup.sh" -3 --quiet  # setuptATLAS
+. "${ATLAS_LOCAL_ROOT_BASE}/user/atlasLocalSetup.sh" -3 --quiet
 
 echo "# lsetup 'views LCG_105 x86_64-el9-gcc12-opt'"
 lsetup 'views LCG_105 x86_64-el9-gcc12-opt'
