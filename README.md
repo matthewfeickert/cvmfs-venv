@@ -27,7 +27,9 @@ Usage: cvmfs-venv [-s|--setup] [--no-system-site-packages] [--no-update] [--no-u
 
 Options:
  -h --help      Print this help message
- -s --setup     String of setup options to be parsed
+ -s --setup     Shell command run first to set up the Python runtime, for
+                example an lsetup or asetup command. setupATLAS is run
+                before it when needed. Fails if the command fails.
  --no-system-site-packages
                 The venv module '--system-site-packages' option is used by
                 default. While it is not recommended, this behavior can be

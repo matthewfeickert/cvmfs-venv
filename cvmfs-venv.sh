@@ -15,7 +15,9 @@ Usage: cvmfs-venv [-s|--setup] [--no-system-site-packages] [--no-update] [--no-u
 
 Options:
  -h --help      Print this help message
- -s --setup     String of setup options to be parsed
+ -s --setup     Shell command run first to set up the Python runtime, for
+                example an lsetup or asetup command. setupATLAS is run
+                before it when needed. Fails if the command fails.
  --no-system-site-packages
                 The venv module '--system-site-packages' option is used by
                 default. While it is not recommended, this behavior can be
@@ -137,7 +139,9 @@ _cvmfs_venv_main () {
     local _no_uv=""
     local _do_setup_atlas=""
     local _venv_name=""
+    local _venv_options=()
     local _venv_full_path=""
+    local _marker="# Added by https://github.com/matthewfeickert/cvmfs-venv"
     local _venv_python=""
     local _activate=""
     local _SET_PYTHONPATH="" _RECOVER_OLD_PYTHONPATH="" _RUN_REBASE=""
@@ -151,7 +155,11 @@ _cvmfs_venv_main () {
                 return 0
                 ;;
             -s|--setup)
-                _setup_command="${2:-}"
+                if [ $# -lt 2 ]; then
+                    echo "ERROR: '${1}' requires an argument" >&2
+                    return 1
+                fi
+                _setup_command="${2}"
                 shift 2
                 ;;
             --no-system-site-packages)
@@ -167,22 +175,34 @@ _cvmfs_venv_main () {
                 shift
                 ;;
             --)
+                # Only the virtual environment name may follow
                 shift
+                if [ $# -gt 1 ]; then
+                    echo "ERROR: Unexpected argument '${2}'" >&2
+                    return 1
+                fi
+                if [ $# -eq 1 ] && [ -n "${_venv_name}" ]; then
+                    echo "ERROR: Unexpected argument '${1}': virtual environment name already given as '${_venv_name}'" >&2
+                    return 1
+                fi
+                _venv_name="${1:-${_venv_name}}"
                 break
                 ;;
-            *)
-                if [ $# -eq 1 ]; then
-                    #FIXME: Needs better guard
-                    if [[ "${1}" != *"--"* ]]; then
-                        # this is the venv's name
-                        break
-                    fi
-                fi
+            -*)
                 echo "ERROR: Invalid option '${1}'" >&2
                 return 1
                 ;;
+            *)
+                if [ -n "${_venv_name}" ]; then
+                    echo "ERROR: Unexpected argument '${1}': virtual environment name already given as '${_venv_name}'" >&2
+                    return 1
+                fi
+                _venv_name="${1}"
+                shift
+                ;;
         esac
     done
+    _venv_name="${_venv_name:-venv}"
 
     if [ -n "${_setup_command}" ]; then
         if [ -f "/release_setup.sh" ]; then
@@ -193,33 +213,33 @@ _cvmfs_venv_main () {
             fi
             printf "\n. /release_setup.sh\n"
             # shellcheck source=/dev/null
-            . /release_setup.sh
+            if ! . /release_setup.sh; then
+                echo "ERROR: '. /release_setup.sh' failed" >&2
+                return 1
+            fi
         else
-            # Try to setup an environment using CVMFS
-            _do_setup_atlas=false
-            if [[ "${_setup_command}" == *"lsetup"* ]]; then
-                _do_setup_atlas=true
-            fi
-            if [[ "${_setup_command}" == *"asetup"* ]]; then
-                _do_setup_atlas=true
-            fi
-
-            if [ "${_do_setup_atlas}" = true ]; then
-                if [ -d "/cvmfs/atlas.cern.ch" ]; then
-                    # Check to see if we need to run setupATLAS
-                    if ! command -v lsetup > /dev/null 2>&1; then
-                        export ATLAS_LOCAL_ROOT_BASE=/cvmfs/atlas.cern.ch/repo/ATLASLocalRootBase
-                        # Allows for working with wrappers as well
-                        # shellcheck source=/dev/null
-                        . "${ATLAS_LOCAL_ROOT_BASE}/user/atlasLocalSetup.sh" -3 --quiet || echo '~~~ERROR: setupATLAS failed!~~~'
-                    fi
-
-                    printf '\n%s\n' "${_setup_command}"
-                    eval "${_setup_command}"
-                else
+            # ATLAS commands need setupATLAS, which needs CVMFS
+            if [[ "${_setup_command}" == *"lsetup"* ]] || [[ "${_setup_command}" == *"asetup"* ]]; then
+                if [ ! -d "/cvmfs/atlas.cern.ch" ]; then
                     echo "ERROR: /cvmfs/atlas.cern.ch/ not found. Check that CernVM-FS is mounted correctly." >&2
                     return 1
                 fi
+                # Check to see if we need to run setupATLAS
+                if ! command -v lsetup > /dev/null 2>&1; then
+                    export ATLAS_LOCAL_ROOT_BASE=/cvmfs/atlas.cern.ch/repo/ATLASLocalRootBase
+                    # Allows for working with wrappers as well
+                    # shellcheck source=/dev/null
+                    if ! . "${ATLAS_LOCAL_ROOT_BASE}/user/atlasLocalSetup.sh" -3 --quiet; then
+                        echo "ERROR: setupATLAS failed" >&2
+                        return 1
+                    fi
+                fi
+            fi
+
+            printf '\n%s\n' "${_setup_command}"
+            if ! eval "${_setup_command}"; then
+                echo "ERROR: Setup command failed: ${_setup_command}" >&2
+                return 1
             fi
         fi
     # If in Linux container
@@ -228,20 +248,29 @@ _cvmfs_venv_main () {
         echo "         Setting up environment with '. /release_setup.sh'."
         printf "\n. /release_setup.sh\n"
         # shellcheck source=/dev/null
-        . /release_setup.sh
+        if ! . /release_setup.sh; then
+            echo "ERROR: '. /release_setup.sh' failed" >&2
+            return 1
+        fi
     fi
 
     # Ensure that pip can't install outside a virtual environment
     export PIP_REQUIRE_VIRTUALENV=true
 
-    _venv_name="${1:-venv}"
-    if [ ! -d "${_venv_name}" ]; then
+    if [ ! -e "${_venv_name}" ]; then
+        if ! command -v python3 > /dev/null 2>&1; then
+            echo "ERROR: python3 not found on PATH" >&2
+            return 1
+        fi
         printf "# Creating new Python virtual environment '%s'\n" "${_venv_name}"
         # Default to using --system-site-packages to add extra guards
         if [ -z "${_no_system_site_packages}" ]; then
-            python3 -m venv --system-site-packages "${_venv_name}"
-        else
-            python3 -m venv "${_venv_name}"
+            _venv_options=(--system-site-packages)
+        fi
+        if ! python3 -m venv "${_venv_options[@]}" "${_venv_name}"; then
+            echo "ERROR: Failed to create the virtual environment '${_venv_name}'." >&2
+            echo "       Remove it if it was partially created before trying again." >&2
+            return 1
         fi
         _venv_full_path="$(readlink -f "${_venv_name}")"
         _venv_python="${_venv_full_path}/bin/python"
@@ -255,7 +284,7 @@ _cvmfs_venv_main () {
         # is fixed at creation time, just as venv fixes VIRTUAL_ENV, so
         # activation needs no filesystem search.
         _SET_PYTHONPATH=$(cat <<EOT
-# Added by https://github.com/matthewfeickert/cvmfs-venv
+${_marker}
 if [ -n "\${PYTHONPATH:-}" ] ; then
     _OLD_VIRTUAL_PYTHONPATH="\${PYTHONPATH:-}"
     _VIRTUAL_SITE_PACKAGES="\${VIRTUAL_ENV}/@CVMFS_VENV_SITE_PACKAGES@"
@@ -271,7 +300,7 @@ EOT
         # attempting to use a different virtual environment or if attempting to use
         # the LCG view's packages.
         _RECOVER_OLD_PYTHONPATH=$(cat <<EOT
-    # Added by https://github.com/matthewfeickert/cvmfs-venv
+    ${_marker}
     if [ -n "\${_VIRTUAL_SITE_PACKAGES:-}" ] ; then
         if [ -n "\${_OLD_VIRTUAL_PYTHONPATH:-}" ] ; then
             PYTHONPATH="\${_OLD_VIRTUAL_PYTHONPATH:-}"
@@ -291,7 +320,7 @@ EOT
         # the virtual environment is deactivated.
         # c.f. https://unix.stackexchange.com/a/534073/275785
         _RUN_REBASE=$(cat <<EOT
-    # Added by https://github.com/matthewfeickert/cvmfs-venv
+    ${_marker}
     cvmfs-venv-rebase  # Keep lsetup PATHs added while venv active
 EOT
 )
@@ -299,7 +328,7 @@ EOT
         # If the deactivate is being run in a destructive manner (i.e., anytime that isn't
         # the sanitizing pass through on activate) then unset cvmfs-venv-rebase.
         _DESTRUCTIVE_UNSET=$(cat <<EOT
-        # Added by https://github.com/matthewfeickert/cvmfs-venv
+        ${_marker}
         unset -f cvmfs-venv-rebase
 EOT
 )
@@ -311,7 +340,7 @@ EOT
         # to allow for software added to them from inside the virtual environment
         # to be usable outside.
         _CVMFS_VENV_REBASE=$(cat <<EOT
-# Added by https://github.com/matthewfeickert/cvmfs-venv
+${_marker}
 cvmfs-venv-rebase () {
     # Reorder the PATH so that the virtual environment bin directory tree
     # is at the head.
@@ -384,11 +413,23 @@ EOT
             rm -rf "${_venv_name}"
             return 1
         fi
+    elif grep -qF -- "${_marker}" "${_venv_name}/bin/activate" 2> /dev/null; then
+        : # Created by cvmfs-venv earlier, so only activation is needed
+    elif [ -f "${_venv_name}/pyvenv.cfg" ]; then
+        echo "ERROR: '${_venv_name}' is a Python virtual environment that was not created by cvmfs-venv." >&2
+        echo "       Choose another name, or remove it to have cvmfs-venv create it." >&2
+        return 1
+    else
+        echo "ERROR: '${_venv_name}' exists and is not a Python virtual environment." >&2
+        return 1
     fi
 
     # Activate the virtual environment
     # shellcheck source=/dev/null
-    . "${_venv_name}/bin/activate"
+    if ! . "${_venv_name}/bin/activate"; then
+        echo "ERROR: Failed to activate '${_venv_name}'" >&2
+        return 1
+    fi
 
     # Install uv by default
     if [ -z "${_no_uv}" ]; then

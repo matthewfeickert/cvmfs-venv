@@ -104,6 +104,66 @@ run_case "missing CVMFS with an ATLAS setup command returns 1 when sourced and t
     exit 0
 '
 
+run_case "--setup without an argument returns 1 instead of looping" '
+    . "${CVMFS_VENV}" --setup 2> /dev/null
+    check [ $? -eq 1 ]
+    "${CVMFS_VENV}" -s 2> /dev/null
+    check [ $? -eq 1 ]
+'
+
+run_case "the environment name may come before options" '
+    . "${CVMFS_VENV}" tv --no-uv --no-update > /dev/null
+    check [ "${VIRTUAL_ENV:-}" = "${PWD}/tv" ]
+'
+
+run_case "a second positional argument is an error" '
+    "${CVMFS_VENV}" --no-uv --no-update tv extra 2> /dev/null
+    check [ $? -eq 1 ]
+    check [ ! -e tv ]
+'
+
+run_case "a setup command is run in the calling shell before creation" '
+    if [ -f /release_setup.sh ]; then echo "skipped: /release_setup.sh exists"; exit 0; fi
+    . "${CVMFS_VENV}" --no-uv --no-update --setup "export CVMFS_VENV_TEST_MARK=set" tv > /dev/null
+    check [ $? -eq 0 ]
+    check [ "${CVMFS_VENV_TEST_MARK:-}" = set ]
+    check [ "${VIRTUAL_ENV:-}" = "${PWD}/tv" ]
+'
+
+run_case "a failing setup command returns 1 and creates nothing" '
+    if [ -f /release_setup.sh ]; then echo "skipped: /release_setup.sh exists"; exit 0; fi
+    . "${CVMFS_VENV}" --no-uv --no-update --setup "false" tv 2> /dev/null
+    check [ $? -eq 1 ]
+    check [ ! -e tv ]
+    check [ -z "${VIRTUAL_ENV:-}" ]
+'
+
+run_case "a failed venv creation returns 1 and never reaches the uv step" '
+    mkdir shims
+    printf "#!/bin/sh\necho uv-was-called > \"${PWD}/uv-called\"\nexit 0\n" > shims/uv
+    printf "#!/bin/sh\nexit 1\n" > shims/python3
+    chmod +x shims/uv shims/python3
+    export PATH="${PWD}/shims:${PATH}"
+    . "${CVMFS_VENV}" tv 2> /dev/null
+    check [ $? -eq 1 ]
+    check [ ! -e uv-called ]
+    check [ -z "${VIRTUAL_ENV:-}" ]
+'
+
+run_case "an existing directory that is not a venv is refused" '
+    mkdir notavenv
+    . "${CVMFS_VENV}" --no-uv --no-update notavenv 2> /dev/null
+    check [ $? -eq 1 ]
+    check [ -z "${VIRTUAL_ENV:-}" ]
+'
+
+run_case "an existing venv without the cvmfs-venv hooks is refused" '
+    python3 -m venv --without-pip plain
+    _output="$(. "${CVMFS_VENV}" --no-uv --no-update plain 2>&1)"
+    check [ $? -eq 1 ]
+    check grep -q "not created by cvmfs-venv" <<< "${_output}"
+'
+
 run_case "help and errors leave no functions or variables behind when sourced" '
     _before="$(compgen -v; compgen -A function)"
     . "${CVMFS_VENV}" --help > /dev/null
