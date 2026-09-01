@@ -514,5 +514,84 @@ run_case "an existing cvmfs-venv is activated without being recreated" '
     check [ "$(stat -c %Y tv/bin/activate)" = "${_mtime}" ]
 '
 
+# The uv cases below stub out pixi, curl and uv so nothing is downloaded.
+# make_uv_stub <path>: a uv that records its arguments and answers the
+# completion query with nothing.
+make_uv_stub () {
+    mkdir -p "$(dirname "${1}")"
+    printf '#!/bin/sh\necho "$*" >> "${UV_STUB_LOG}"\nexit 0\n' > "${1}"
+    chmod +x "${1}"
+}
+export -f make_uv_stub
+
+run_case "uv installed with pixi lands behind the venv on PATH and is used for the pip update" '
+    export HOME="${PWD}/home" UV_STUB_LOG="${PWD}/uv.log"
+    mkdir -p home shims
+    printf "#!/bin/bash\n[ \"\$1 \$2 \$3\" = \"global install uv\" ] || exit 1\nmake_uv_stub \"\${HOME}/.pixi/bin/uv\"\n" > shims/pixi
+    chmod +x shims/pixi
+    export PATH="${PWD}/shims:$(dirname "$(command -v python3)"):/usr/bin:/bin"
+    . "${CVMFS_VENV}" tv > /dev/null
+    check [ $? -eq 0 ]
+    check [ "${VIRTUAL_ENV:-}" = "${PWD}/tv" ]
+    check [ "${PATH%%:*}" = "${PWD}/tv/bin" ]
+    check [ "${PATH##*:}" = "${HOME}/.pixi/bin" ]
+    check [ "$(command -v uv)" = "${HOME}/.pixi/bin/uv" ]
+    check [ "$(command -v python)" = "${PWD}/tv/bin/python" ]
+    check grep -q "^generate-shell-completion bash$" uv.log
+    check grep -q "^pip --quiet install --python ${PWD}/tv --upgrade pip setuptools$" uv.log
+'
+
+run_case "uv installed from astral.sh is fetched to a file, run without editing start-up files, and found afterwards" '
+    export HOME="${PWD}/home" UV_STUB_LOG="${PWD}/uv.log"
+    mkdir -p home shims
+    # A fake installer (plain sh, as the real one is run with sh) that records
+    # its environment and installs a uv stub into ~/.local/bin; the curl stub
+    # copies it to the -o target.
+    cat > fake-installer.sh <<"INSTALLER"
+#!/bin/sh
+env > "${HOME}/installer.env"
+mkdir -p "${HOME}/.local/bin"
+printf "#!/bin/sh\nexit 0\n" > "${HOME}/.local/bin/uv"
+chmod +x "${HOME}/.local/bin/uv"
+INSTALLER
+    cat > shims/curl <<"CURL"
+#!/bin/bash
+while [ $# -gt 0 ]; do case "$1" in -o) cp fake-installer.sh "$2"; shift ;; esac; shift; done
+CURL
+    chmod +x shims/curl
+    export PATH="${PWD}/shims:$(dirname "$(command -v python3)"):/usr/bin:/bin"
+    . "${CVMFS_VENV}" --no-update tv > /dev/null
+    check [ $? -eq 0 ]
+    check grep -q "^UV_NO_MODIFY_PATH=1$" home/installer.env
+    check [ "$(command -v uv)" = "${HOME}/.local/bin/uv" ]
+    check [ "${PATH%%:*}" = "${PWD}/tv/bin" ]
+    check [ "$(command -v python)" = "${PWD}/tv/bin/python" ]
+'
+
+run_case "an installed uv that is not yet on PATH is reused rather than reinstalled" '
+    export HOME="${PWD}/home" UV_STUB_LOG="${PWD}/uv.log"
+    mkdir -p home shims
+    make_uv_stub "${HOME}/.local/bin/uv"
+    printf "#!/bin/sh\necho curl-was-called > \"${PWD}/curl-called\"\nexit 1\n" > shims/curl
+    chmod +x shims/curl
+    export PATH="${PWD}/shims:$(dirname "$(command -v python3)"):/usr/bin:/bin"
+    . "${CVMFS_VENV}" --no-update tv > /dev/null
+    check [ $? -eq 0 ]
+    check [ ! -e curl-called ]
+    check [ "$(command -v uv)" = "${HOME}/.local/bin/uv" ]
+'
+
+run_case "a failed uv download falls back to pip with a warning" '
+    export HOME="${PWD}/home"
+    mkdir -p home shims
+    printf "#!/bin/sh\nexit 22\n" > shims/curl
+    chmod +x shims/curl
+    export PATH="${PWD}/shims:$(dirname "$(command -v python3)"):/usr/bin:/bin"
+    _output="$(. "${CVMFS_VENV}" --no-update tv 2>&1; echo "status=$?")"
+    check grep -q "^status=0$" <<< "${_output}"
+    check grep -q "^WARNING: uv is not available" <<< "${_output}"
+    check [ -f tv/pyvenv.cfg ]
+'
+
 echo "# passed ${_passed}, failed ${_failed}"
 [ "${_failed}" -eq 0 ]

@@ -135,6 +135,60 @@ os.replace(temporary, path)
 PY
 }
 
+# _cvmfs_venv_ensure_uv
+#
+# Make uv available on PATH, installing it if needed, and return non-zero if
+# that is not possible. Directories are appended to PATH so nothing already
+# on it, in particular an active virtual environment, is shadowed.
+_cvmfs_venv_ensure_uv () {
+    # Installer version, bumped deliberately. `uv self update` upgrades an
+    # installed uv independently of this.
+    local _uv_version="0.12.9"
+    local _uv_dir="" _installer="" _status=0
+
+    if command -v uv > /dev/null 2>&1; then
+        return 0
+    fi
+
+    # uv may already be installed but not on PATH in this shell
+    for _uv_dir in "${UV_INSTALL_DIR:-}" "${XDG_BIN_HOME:-}" "${HOME}/.local/bin" "${PIXI_HOME:-${HOME}/.pixi}/bin"; do
+        if [ -n "${_uv_dir}" ] && [ -x "${_uv_dir}/uv" ]; then
+            export PATH="${PATH}:${_uv_dir}"
+            return 0
+        fi
+    done
+
+    echo "# Installing uv"
+    if command -v pixi > /dev/null 2>&1; then
+        echo "# Installing uv with pixi global"
+        echo "# You can update uv with 'pixi global update uv'"
+        pixi global install uv || return 1
+        _uv_dir="${PIXI_HOME:-${HOME}/.pixi}/bin"
+    else
+        echo "# Installing uv ${_uv_version} from https://astral.sh/"
+        echo "# You can update uv with 'uv self update'"
+        _installer="$(mktemp)" || return 1
+        if ! curl -LsSf "https://astral.sh/uv/${_uv_version}/install.sh" -o "${_installer}"; then
+            rm -f "${_installer}"
+            return 1
+        fi
+        # The installer must not edit shell start-up files; PATH is handled here.
+        UV_NO_MODIFY_PATH=1 INSTALLER_NO_MODIFY_PATH=1 sh "${_installer}"
+        _status=$?
+        rm -f "${_installer}"
+        [ "${_status}" -eq 0 ] || return 1
+        _uv_dir="${UV_INSTALL_DIR:-${XDG_BIN_HOME:-${HOME}/.local/bin}}"
+    fi
+
+    if [[ ":${PATH}:" != *":${_uv_dir}:"* ]]; then
+        export PATH="${PATH}:${_uv_dir}"
+        echo "# Add '${_uv_dir}' to PATH in your shell start-up file to use uv in new shells"
+    fi
+    command -v uv > /dev/null 2>&1 || return 1
+    # Enable uv shell autocompletion
+    eval "$(uv generate-shell-completion bash)"
+}
+
 _cvmfs_venv_main () {
     local _setup_command=""
     local _no_system_site_packages=""
@@ -280,6 +334,14 @@ _cvmfs_venv_main () {
             echo "ERROR: '. /release_setup.sh' failed" >&2
             return 1
         fi
+    fi
+
+    # Install uv by default. This happens before the environment is created
+    # and activated, so that any directory added to PATH for uv sits behind
+    # the environment's own bin.
+    if [ -z "${_no_uv}" ] && ! _cvmfs_venv_ensure_uv; then
+        echo "WARNING: uv is not available, so pip will be used instead." >&2
+        _no_uv=true
     fi
 
     if [ ! -e "${_venv_name}" ]; then
@@ -472,41 +534,19 @@ EOT
     # Ensure that pip can't install outside a virtual environment
     export PIP_REQUIRE_VIRTUALENV=true
 
-    # Install uv by default
-    if [ -z "${_no_uv}" ]; then
-        # Ensure that uv is installed
-        if ! command -v uv >/dev/null 2>&1; then
-            echo "# Installing uv"
-            # Check if pixi exists
-            if command -v pixi >/dev/null 2>&1; then
-                # Use pixi global
-                echo "# Installing uv with pixi global"
-                echo "# You can update uv with 'pixi global update uv'"
-                pixi global install uv
-            else
-                # Install from https://astral.sh/
-                echo "# Installing from https://astral.sh/"
-                echo "# You can update uv with 'uv self update'"
-                curl -LsSf https://astral.sh/uv/install.sh | sh
-            fi
-
-            # Ensure ~/.local/bin is on the PATH for uv
-            if [[ ":${PATH}:" != *":${HOME}/.local/bin:"* ]]; then
-                export PATH="${HOME}/.local/bin:${PATH}"
-            fi
-            # Enable uv shell autocompletion
-            eval "$(uv generate-shell-completion bash)"
-        fi
-    fi
-
     # Get latest pip and setuptools
     if [ -z "${_no_update}" ]; then
         # Use uv by default
         if [ -z "${_no_uv}" ]; then
-            uv pip --quiet install --upgrade pip setuptools
+            if ! uv pip --quiet install --python "${VIRTUAL_ENV}" --upgrade pip setuptools; then
+                echo "WARNING: Failed to update pip and setuptools with uv" >&2
+            fi
         else
-            # Hide not-real errors from CVMFS by sending to /dev/null
-            python -m pip --quiet --no-cache-dir install --upgrade pip setuptools &> /dev/null
+            # pip on CVMFS prints errors that are not real, so only the exit
+            # status is reported.
+            if ! python -m pip --quiet --no-cache-dir install --upgrade pip setuptools > /dev/null 2>&1; then
+                echo "WARNING: Failed to update pip and setuptools with pip" >&2
+            fi
         fi
     fi
 
@@ -517,7 +557,7 @@ EOT
 # sourced this file) while preserving the exit status of _cvmfs_venv_main.
 # A function may unset itself in bash; it still returns normally.
 _cvmfs_venv_cleanup () {
-    unset -f _cvmfs_venv_help _cvmfs_venv_patch_activate _cvmfs_venv_main _cvmfs_venv_cleanup
+    unset -f _cvmfs_venv_help _cvmfs_venv_patch_activate _cvmfs_venv_ensure_uv _cvmfs_venv_main _cvmfs_venv_cleanup
     return "${1}"
 }
 
