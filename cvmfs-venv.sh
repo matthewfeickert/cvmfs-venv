@@ -1,9 +1,15 @@
 #!/bin/bash
+#
+# cvmfs-venv: create a Python virtual environment that can coexist with
+# software set up from CVMFS (LCG views, ATLAS releases).
+#
+# This file can be executed (`cvmfs-venv <name>`) or sourced
+# (`. cvmfs-venv --setup '...' <name>`). All work happens inside
+# _cvmfs_venv_main so that errors `return` rather than `exit` (which would
+# terminate a sourcing shell), working variables stay local, and the exit
+# status reaches the caller in both modes.
 
-# Ensure that pip can't install outside a virtual environment
-export PIP_REQUIRE_VIRTUALENV=true
-
-_help_options () {
+_cvmfs_venv_help () {
     cat <<EOF
 Usage: cvmfs-venv [-s|--setup] [--no-system-site-packages] [--no-update] [--no-uv] <virtual environment name>
 
@@ -57,135 +63,145 @@ Examples:
 
         . cvmfs-venv --setup 'asetup AnalysisBase,25.2.15' atlas-ab-example
 EOF
-
-  return 0
+    return 0
 }
 
-# CLI API
-# N.B.: _return_break NEEDS to be unset before anything can be run
-unset _return_break
-while [ $# -gt 0 ]; do
-    case "${1}" in
-        -h|--help)
-            _help_options
-            _return_break=0
-            break
-            ;;
-        -s|--setup)
-            _setup_command="${2}"
-            shift 2
-            ;;
-        --no-system-site-packages)
-            _no_system_site_packages=true
-            shift
-            ;;
-        --no-update)
-            _no_update=true
-            shift
-            ;;
-        --no-uv)
-            _no_uv=true
-            shift
-            ;;
-        --)
-            shift
-            break
-            ;;
-        *)
-            if [ $# -eq 1 ]; then
-                #FIXME: Needs better guard
-                if [[ "${1}" != *"--"* ]]; then
-                    # this is the venv's name
-                    break
+_cvmfs_venv_main () {
+    local _setup_command=""
+    local _no_system_site_packages=""
+    local _no_update=""
+    local _no_uv=""
+    local _do_setup_atlas=""
+    local _text_editor=""
+    local _venv_name=""
+    local _venv_full_path=""
+    local _vi_script=""
+    local nl=""
+    local _SET_PYTHONPATH="" _RECOVER_OLD_PYTHONPATH="" _RUN_REBASE=""
+    local _DESCTRUCTIVE_UNSET="" _CVMFS_VENV_REBASE=""
+    local _SET_PYTHONPATH_INSERT_LINE="" _RECOVER_OLD_PYTHONPATH_LINE=""
+    local _RUN_REBASE_LINE="" _DESCTRUCTIVE_UNSET_LINE="" _CVMFS_VENV_REBASE_LINE=""
+
+    # CLI API
+    while [ $# -gt 0 ]; do
+        case "${1}" in
+            -h|--help)
+                _cvmfs_venv_help
+                return 0
+                ;;
+            -s|--setup)
+                _setup_command="${2:-}"
+                shift 2
+                ;;
+            --no-system-site-packages)
+                _no_system_site_packages=true
+                shift
+                ;;
+            --no-update)
+                _no_update=true
+                shift
+                ;;
+            --no-uv)
+                _no_uv=true
+                shift
+                ;;
+            --)
+                shift
+                break
+                ;;
+            *)
+                if [ $# -eq 1 ]; then
+                    #FIXME: Needs better guard
+                    if [[ "${1}" != *"--"* ]]; then
+                        # this is the venv's name
+                        break
+                    fi
+                fi
+                echo "ERROR: Invalid option '${1}'" >&2
+                return 1
+                ;;
+        esac
+    done
+
+    if [ -n "${_setup_command}" ]; then
+        if [ -f "/release_setup.sh" ]; then
+            # If in Linux container
+            if [[ "${_setup_command}" != *"/release_setup.sh"* ]]; then
+                echo "WARNING: /release_setup.sh exists and it is assumed you are in a Linux container."
+                echo "         '${_setup_command}' will be skipped in favor of using '. /release_setup.sh'."
+            fi
+            printf "\n. /release_setup.sh\n"
+            # shellcheck source=/dev/null
+            . /release_setup.sh
+        else
+            # Try to setup an environment using CVMFS
+            _do_setup_atlas=false
+            if [[ "${_setup_command}" == *"lsetup"* ]]; then
+                _do_setup_atlas=true
+            fi
+            if [[ "${_setup_command}" == *"asetup"* ]]; then
+                _do_setup_atlas=true
+            fi
+
+            if [ "${_do_setup_atlas}" = true ]; then
+                if [ -d "/cvmfs/atlas.cern.ch" ]; then
+                    # Check to see if we need to run setupATLAS
+                    if ! command -v lsetup > /dev/null 2>&1; then
+                        export ATLAS_LOCAL_ROOT_BASE=/cvmfs/atlas.cern.ch/repo/ATLASLocalRootBase
+                        # Allows for working with wrappers as well
+                        # shellcheck source=/dev/null
+                        . "${ATLAS_LOCAL_ROOT_BASE}/user/atlasLocalSetup.sh" -3 --quiet || echo '~~~ERROR: setupATLAS failed!~~~'
+                    fi
+
+                    printf '\n%s\n' "${_setup_command}"
+                    eval "${_setup_command}"
+                else
+                    echo "ERROR: /cvmfs/atlas.cern.ch/ not found. Check that CernVM-FS is mounted correctly." >&2
+                    return 1
                 fi
             fi
-            echo "ERROR: Invalid option '${1}'"
-            _return_break=1
-            break
-            ;;
-    esac
-done
-
-# FIXME: Find smarter way to filter guard virtual environment creation
-if [ -z "${_return_break}" ]; then
-
-if [ ! -z "${_setup_command}" ]; then
-    if [ -f "/release_setup.sh" ]; then
-        # If in Linux container
-        if [[ "${_setup_command}" != *"/release_setup.sh"* ]]; then
-            echo "WARNING: /release_setup.sh exists and it is assumed you are in a Linux container."
-            echo "         '${_setup_command}' will be skipped in favor of using '. /release_setup.sh'."
         fi
+    # If in Linux container
+    elif [ -f "/release_setup.sh" ]; then
+        echo "WARNING: /release_setup.sh exists and it is assumed you are in a Linux container."
+        echo "         Setting up environment with '. /release_setup.sh'."
         printf "\n. /release_setup.sh\n"
+        # shellcheck source=/dev/null
         . /release_setup.sh
-    else
-        # Try to setup an environment using CVMFS
-        _do_setup_atlas=false
-        if [[ "${_setup_command}" == *"lsetup"* ]]; then
-            _do_setup_atlas=true
-        fi
-        if [[ "${_setup_command}" == *"asetup"* ]]; then
-            _do_setup_atlas=true
-        fi
-
-        if [ "${_do_setup_atlas}" = true ]; then
-            if [ -d "/cvmfs/atlas.cern.ch" ]; then
-                # Check to see if we need to run setupATLAS
-                command -v lsetup > /dev/null
-                if [ "$?" == "1" ]; then
-                    export ATLAS_LOCAL_ROOT_BASE=/cvmfs/atlas.cern.ch/repo/ATLASLocalRootBase
-                    # Allows for working with wrappers as well
-                    . "${ATLAS_LOCAL_ROOT_BASE}/user/atlasLocalSetup.sh" -3 --quiet || echo '~~~ERROR: setupATLAS failed!~~~'
-                fi
-
-                printf "\n${_setup_command}\n"
-                eval "${_setup_command}"
-            else
-                echo "ERROR: /cvmfs/atlas.cern.ch/ not found. Check that CernVM-FS is mounted correctly."
-                exit 1
-            fi
-        fi
     fi
-# If in Linux container
-elif [ -f "/release_setup.sh" ]; then
-    echo "WARNING: /release_setup.sh exists and it is assumed you are in a Linux container."
-    echo "         Setting up environment with '. /release_setup.sh'."
-    printf "\n. /release_setup.sh\n"
-    . /release_setup.sh
-fi
 
-unset _setup_command
-unset _do_setup_atlas
+    # Ensure that pip can't install outside a virtual environment
+    export PIP_REQUIRE_VIRTUALENV=true
 
-# determine text editor to use for complicated edits to the activate script
-if [ -x "$(command -v ed)" ]; then
-    # default to using 'ed'
-    _text_editor="ed"
-elif [ -x "$(command -v vi)" ]; then
-    # fall back to 'vi'
-    _text_editor="vi"
-else
-    echo "ERROR: Neither 'ed' nor 'vi' is installed. Please install one of them."
-    exit 1
-fi
-
-_venv_name="${1:-venv}"
-if [ ! -d "${_venv_name}" ]; then
-    printf "# Creating new Python virtual environment '%s'\n" "${_venv_name}"
-    # Default to using --system-site-packages to add extra guards
-    if [ -z "${_no_system_site_packages}" ]; then
-        python3 -m venv --system-site-packages "${_venv_name}"
+    # determine text editor to use for complicated edits to the activate script
+    if [ -x "$(command -v ed)" ]; then
+        # default to using 'ed'
+        _text_editor="ed"
+    elif [ -x "$(command -v vi)" ]; then
+        # fall back to 'vi'
+        _text_editor="vi"
     else
-        python3 -m venv "${_venv_name}"
+        echo "ERROR: Neither 'ed' nor 'vi' is installed. Please install one of them." >&2
+        return 1
     fi
-    _venv_full_path="$(readlink -f ${_venv_name})"
 
-    # When setting up the Python virtual environment shell variables in the
-    # main section of the <venv>/bin/activate script, copy the pattern used
-    # for PYTHONHOME to also place the <venv>'s site-packages at the front
-    # of PYTHONPATH so that they are ahead of the LCG view's packages in
-    # priority.
-    _SET_PYTHONPATH=$(cat <<-EOT
+    _venv_name="${1:-venv}"
+    if [ ! -d "${_venv_name}" ]; then
+        printf "# Creating new Python virtual environment '%s'\n" "${_venv_name}"
+        # Default to using --system-site-packages to add extra guards
+        if [ -z "${_no_system_site_packages}" ]; then
+            python3 -m venv --system-site-packages "${_venv_name}"
+        else
+            python3 -m venv "${_venv_name}"
+        fi
+        _venv_full_path="$(readlink -f "${_venv_name}")"
+
+        # When setting up the Python virtual environment shell variables in the
+        # main section of the <venv>/bin/activate script, copy the pattern used
+        # for PYTHONHOME to also place the <venv>'s site-packages at the front
+        # of PYTHONPATH so that they are ahead of the LCG view's packages in
+        # priority.
+        _SET_PYTHONPATH=$(cat <<-EOT
 # Added by https://github.com/matthewfeickert/cvmfs-venv
 if [ -n "\${PYTHONPATH:-}" ] ; then
     _OLD_VIRTUAL_PYTHONPATH="\${PYTHONPATH:-}"
@@ -197,12 +213,12 @@ fi
 EOT
 )
 
-    # When deactivate is being run, reset the PYTHONPATH to what is was before
-    # activation of the Python virtual environment. This ensures that the <venv>'s
-    # site-packages are removed from PYTHONPATH so there is no collision if
-    # attempting to use a different virtual environment or if attempting to use
-    # the LCG view's packages.
-    _RECOVER_OLD_PYTHONPATH=$(cat <<-EOT
+        # When deactivate is being run, reset the PYTHONPATH to what is was before
+        # activation of the Python virtual environment. This ensures that the <venv>'s
+        # site-packages are removed from PYTHONPATH so there is no collision if
+        # attempting to use a different virtual environment or if attempting to use
+        # the LCG view's packages.
+        _RECOVER_OLD_PYTHONPATH=$(cat <<-EOT
     # Added by https://github.com/matthewfeickert/cvmfs-venv
     if [ -n "\${_OLD_VIRTUAL_PYTHONPATH:-}" ] ; then
         PYTHONPATH="\${_OLD_VIRTUAL_PYTHONPATH:-}"
@@ -213,35 +229,34 @@ EOT
 EOT
 )
 
-    # When deactivate is being run, run cvmfs-venv-rebase as the very first action
-    # to ensure that _OLD_VIRTUAL_PYTHONPATH is updated to the current value of
-    # PYTHONPATH so that software loaded with CVMFS is still available when
-    # the virtual environment is deactivated.
-    # c.f. https://unix.stackexchange.com/a/534073/275785
-    nl=$'\n'
-    _RUN_REBASE=$(cat <<-EOT
+        # When deactivate is being run, run cvmfs-venv-rebase as the very first action
+        # to ensure that _OLD_VIRTUAL_PYTHONPATH is updated to the current value of
+        # PYTHONPATH so that software loaded with CVMFS is still available when
+        # the virtual environment is deactivated.
+        # c.f. https://unix.stackexchange.com/a/534073/275785
+        nl=$'\n'
+        _RUN_REBASE=$(cat <<-EOT
     # Added by https://github.com/matthewfeickert/cvmfs-venv
     cvmfs-venv-rebase  # Keep lsetup PATHs added while venv active
     $nl
 EOT
 )
-    unset nl
 
-    # If the deactivate is being run in a destructive manner (i.e., anytime that isn't
-    # the sanitizing pass through on activate) then unset cvmfs-venv-rebase.
-    _DESCTRUCTIVE_UNSET=$(cat <<-EOT
+        # If the deactivate is being run in a destructive manner (i.e., anytime that isn't
+        # the sanitizing pass through on activate) then unset cvmfs-venv-rebase.
+        _DESCTRUCTIVE_UNSET=$(cat <<-EOT
         # Added by https://github.com/matthewfeickert/cvmfs-venv
         unset -f cvmfs-venv-rebase
 EOT
 )
 
-    # Add in functionality to:
-    # * Rebase the virtual environment's PATH and PYTHONPATH directory trees
-    # to the head of those environment variables.
-    # * Update the value of _OLD_VIRTUAL_PATH and _OLD_VIRTUAL_PYTHONPATH
-    # to allow for software added to them from inside the virtual environment
-    # to be usable outside.
-    _CVMFS_VENV_REBASE=$(cat <<-EOT
+        # Add in functionality to:
+        # * Rebase the virtual environment's PATH and PYTHONPATH directory trees
+        # to the head of those environment variables.
+        # * Update the value of _OLD_VIRTUAL_PATH and _OLD_VIRTUAL_PYTHONPATH
+        # to allow for software added to them from inside the virtual environment
+        # to be usable outside.
+        _CVMFS_VENV_REBASE=$(cat <<-EOT
 # Added by https://github.com/matthewfeickert/cvmfs-venv
 cvmfs-venv-rebase () {
     # Reorder the PATH so that the virtual environment bin directory tree
@@ -297,186 +312,176 @@ cvmfs-venv-rebase () {
 EOT
 )
 
-    # Find the line number of the last line in the PYTHONHOME set if statement
-    # block and inject the PYTHONPATH if statement block directly after it
-    # (2 lines later).
-    _RECOVER_OLD_PYTHONPATH_LINE="$(($(sed -n '\|unset _OLD_VIRTUAL_PYTHONHOME|=' "${_venv_full_path}"/bin/activate) + 2))"
-    # FIXME: Make a cleaner implimentation
-    if [ "${_text_editor}" == "ed" ]; then
-        ed --silent "${_venv_full_path}/bin/activate" <<EOF
+        # Find the line number of the last line in the PYTHONHOME set if statement
+        # block and inject the PYTHONPATH if statement block directly after it
+        # (2 lines later).
+        _RECOVER_OLD_PYTHONPATH_LINE="$(($(sed -n '\|unset _OLD_VIRTUAL_PYTHONHOME|=' "${_venv_full_path}"/bin/activate) + 2))"
+        # FIXME: Make a cleaner implimentation
+        if [ "${_text_editor}" == "ed" ]; then
+            ed --silent "${_venv_full_path}/bin/activate" <<EOF
 ${_RECOVER_OLD_PYTHONPATH_LINE}i
 ${_RECOVER_OLD_PYTHONPATH}
 .
 wq
 EOF
-    else
-        # only supporting vi so don't need to check
-        _vi_script=$(mktemp)
-        cat <<EOF > "${_vi_script}"
-${_RECOVER_OLD_PYTHONPATH_LINE}i
-${_RECOVER_OLD_PYTHONPATH}
-.
-wq
-EOF
-        vi -es "${_venv_full_path}/bin/activate" < "${_vi_script}"
-    fi
-
-    # Find the line number of the last line in deactivate's PYTHONHOME reset
-    # if statement block and inject the PYTHONPATH reset if statement block directly
-    # after it (2 lines later).
-    _SET_PYTHONPATH_INSERT_LINE="$(($(sed -n '\|    unset PYTHONHOME|=' "${_venv_full_path}"/bin/activate) + 2))"
-    # FIXME: Make a cleaner implimentation
-    if [ "${_text_editor}" == "ed" ]; then
-        ed --silent "${_venv_full_path}/bin/activate" <<EOF
-${_SET_PYTHONPATH_INSERT_LINE}i
-${_SET_PYTHONPATH}
-.
-wq
-EOF
-    else
-        # only supporting vi so don't need to check
-        _vi_script=$(mktemp)
-        cat <<EOF > "${_vi_script}"
-${_SET_PYTHONPATH_INSERT_LINE}i
-${_SET_PYTHONPATH}
-.
-wq
-EOF
-        vi -es "${_venv_full_path}/bin/activate" < "${_vi_script}"
-    fi
-
-    # Find the line number of the deactivate function and inject the cvmfs-venv-rebase directly after it
-    # (1 line later).
-    _RUN_REBASE_LINE="$(($(sed -n '\|deactivate ()|=' "${_venv_full_path}"/bin/activate) + 1))"
-    # FIXME: Make a cleaner implimentation
-    if [ "${_text_editor}" == "ed" ]; then
-        ed --silent "${_venv_full_path}/bin/activate" <<EOF
-${_RUN_REBASE_LINE}i
-${_RUN_REBASE}
-.
-wq
-EOF
-    else
-        # only supporting vi so don't need to check
-        _vi_script=$(mktemp)
-        cat <<EOF > "${_vi_script}"
-${_RUN_REBASE_LINE}i
-${_RUN_REBASE}
-.
-wq
-EOF
-        vi -es "${_venv_full_path}/bin/activate" < "${_vi_script}"
-    fi
-
-    # Find the line number of the unset -f deactivate line in deactivate's destructive unset
-    # and inject the cvmfs-venv-rebase reset directly after it (1 line later).
-    _DESCTRUCTIVE_UNSET_LINE="$(($(sed -n '\|unset -f deactivate|=' "${_venv_full_path}"/bin/activate) + 1))"
-    # FIXME: Make a cleaner implimentation
-    if [ "${_text_editor}" == "ed" ]; then
-        ed --silent "${_venv_full_path}/bin/activate" <<EOF
-${_DESCTRUCTIVE_UNSET_LINE}i
-${_DESCTRUCTIVE_UNSET}
-.
-wq
-EOF
-    else
-        # only supporting vi so don't need to check
-        _vi_script=$(mktemp)
-        cat <<EOF > "${_vi_script}"
-${_DESCTRUCTIVE_UNSET_LINE}i
-${_DESCTRUCTIVE_UNSET}
-.
-wq
-EOF
-        vi -es "${_venv_full_path}/bin/activate" < "${_vi_script}"
-    fi
-
-    # Find the line number of the unset -f cvmfs-venv-rebase line in deactivate's destructive unset
-    # and inject the cvmfs-venv-rebase function directly after it (4 lines later).
-    _CVMFS_VENV_REBASE_LINE="$(($(sed -n '\|unset -f cvmfs-venv-rebase|=' "${_venv_full_path}"/bin/activate) + 4))"
-    # FIXME: Make a cleaner implimentation
-    if [ "${_text_editor}" == "ed" ]; then
-        ed --silent "${_venv_full_path}/bin/activate" <<EOF
-${_CVMFS_VENV_REBASE_LINE}i
-${_CVMFS_VENV_REBASE}
-.
-wq
-EOF
-    else
-        # only supporting vi so don't need to check
-        _vi_script=$(mktemp)
-        cat <<EOF > "${_vi_script}"
-${_CVMFS_VENV_REBASE_LINE}i
-${_CVMFS_VENV_REBASE}
-.
-wq
-EOF
-        vi -es "${_venv_full_path}/bin/activate" < "${_vi_script}"
-    fi
-
-unset _venv_full_path
-
-unset _SET_PYTHONPATH
-unset _RECOVER_OLD_PYTHONPATH
-unset _RUN_REBASE
-unset _DESCTRUCTIVE_UNSET
-unset _CVMFS_VENV_REBASE
-
-unset _SET_PYTHONPATH_LINE
-unset _RECOVER_OLD_PYTHONPATH_LINE
-unset _RUN_REBASE_LINE
-unset _DESCTRUCTIVE_UNSET_LINE
-unset _CVMFS_VENV_REBASE_LINE
-
-fi
-
-# Activate the virtual environment
-. "${_venv_name}/bin/activate"
-
-# Install uv by default
-if [ -z "${_no_uv}" ]; then
-    # Ensure that uv is installed
-    if ! command -v uv >/dev/null 2>&1; then
-        echo "# Installing uv"
-        # Check if pixi exists
-        if command -v pixi >/dev/null 2>&1; then
-            # Use pixi global
-            echo "# Installing uv with pixi global"
-            echo "# You can update uv with 'pixi global update uv'"
-            pixi global install uv
         else
-            # Install from https://astral.sh/
-            echo "# Installing from https://astral.sh/"
-            echo "# You can update uv with 'uv self update'"
-            curl -LsSf https://astral.sh/uv/install.sh | sh
+            # only supporting vi so don't need to check
+            _vi_script=$(mktemp)
+            cat <<EOF > "${_vi_script}"
+${_RECOVER_OLD_PYTHONPATH_LINE}i
+${_RECOVER_OLD_PYTHONPATH}
+.
+wq
+EOF
+            vi -es "${_venv_full_path}/bin/activate" < "${_vi_script}"
         fi
 
-        # Ensure ~/.local/bin is on the PATH for uv
-        if [[ ":$PATH:" != *":${HOME}/.local/bin:"* ]]; then
-            export PATH="${HOME}/.local/bin:${PATH}"
+        # Find the line number of the last line in deactivate's PYTHONHOME reset
+        # if statement block and inject the PYTHONPATH reset if statement block directly
+        # after it (2 lines later).
+        _SET_PYTHONPATH_INSERT_LINE="$(($(sed -n '\|    unset PYTHONHOME|=' "${_venv_full_path}"/bin/activate) + 2))"
+        # FIXME: Make a cleaner implimentation
+        if [ "${_text_editor}" == "ed" ]; then
+            ed --silent "${_venv_full_path}/bin/activate" <<EOF
+${_SET_PYTHONPATH_INSERT_LINE}i
+${_SET_PYTHONPATH}
+.
+wq
+EOF
+        else
+            # only supporting vi so don't need to check
+            _vi_script=$(mktemp)
+            cat <<EOF > "${_vi_script}"
+${_SET_PYTHONPATH_INSERT_LINE}i
+${_SET_PYTHONPATH}
+.
+wq
+EOF
+            vi -es "${_venv_full_path}/bin/activate" < "${_vi_script}"
         fi
-        # Enable uv shell autocompletion
-        eval "$(uv generate-shell-completion bash)"
+
+        # Find the line number of the deactivate function and inject the cvmfs-venv-rebase directly after it
+        # (1 line later).
+        _RUN_REBASE_LINE="$(($(sed -n '\|deactivate ()|=' "${_venv_full_path}"/bin/activate) + 1))"
+        # FIXME: Make a cleaner implimentation
+        if [ "${_text_editor}" == "ed" ]; then
+            ed --silent "${_venv_full_path}/bin/activate" <<EOF
+${_RUN_REBASE_LINE}i
+${_RUN_REBASE}
+.
+wq
+EOF
+        else
+            # only supporting vi so don't need to check
+            _vi_script=$(mktemp)
+            cat <<EOF > "${_vi_script}"
+${_RUN_REBASE_LINE}i
+${_RUN_REBASE}
+.
+wq
+EOF
+            vi -es "${_venv_full_path}/bin/activate" < "${_vi_script}"
+        fi
+
+        # Find the line number of the unset -f deactivate line in deactivate's destructive unset
+        # and inject the cvmfs-venv-rebase reset directly after it (1 line later).
+        _DESCTRUCTIVE_UNSET_LINE="$(($(sed -n '\|unset -f deactivate|=' "${_venv_full_path}"/bin/activate) + 1))"
+        # FIXME: Make a cleaner implimentation
+        if [ "${_text_editor}" == "ed" ]; then
+            ed --silent "${_venv_full_path}/bin/activate" <<EOF
+${_DESCTRUCTIVE_UNSET_LINE}i
+${_DESCTRUCTIVE_UNSET}
+.
+wq
+EOF
+        else
+            # only supporting vi so don't need to check
+            _vi_script=$(mktemp)
+            cat <<EOF > "${_vi_script}"
+${_DESCTRUCTIVE_UNSET_LINE}i
+${_DESCTRUCTIVE_UNSET}
+.
+wq
+EOF
+            vi -es "${_venv_full_path}/bin/activate" < "${_vi_script}"
+        fi
+
+        # Find the line number of the unset -f cvmfs-venv-rebase line in deactivate's destructive unset
+        # and inject the cvmfs-venv-rebase function directly after it (4 lines later).
+        _CVMFS_VENV_REBASE_LINE="$(($(sed -n '\|unset -f cvmfs-venv-rebase|=' "${_venv_full_path}"/bin/activate) + 4))"
+        # FIXME: Make a cleaner implimentation
+        if [ "${_text_editor}" == "ed" ]; then
+            ed --silent "${_venv_full_path}/bin/activate" <<EOF
+${_CVMFS_VENV_REBASE_LINE}i
+${_CVMFS_VENV_REBASE}
+.
+wq
+EOF
+        else
+            # only supporting vi so don't need to check
+            _vi_script=$(mktemp)
+            cat <<EOF > "${_vi_script}"
+${_CVMFS_VENV_REBASE_LINE}i
+${_CVMFS_VENV_REBASE}
+.
+wq
+EOF
+            vi -es "${_venv_full_path}/bin/activate" < "${_vi_script}"
+        fi
     fi
-fi
 
-# Get latest pip and setuptools
-if [ -z "${_no_update}" ]; then
-    # Use uv by default
+    # Activate the virtual environment
+    # shellcheck source=/dev/null
+    . "${_venv_name}/bin/activate"
+
+    # Install uv by default
     if [ -z "${_no_uv}" ]; then
-        uv pip --quiet install --upgrade pip setuptools
-    else
-        # Hide not-real errors from CVMFS by sending to /dev/null
-        python -m pip --quiet --no-cache-dir install --upgrade pip setuptools &> /dev/null
+        # Ensure that uv is installed
+        if ! command -v uv >/dev/null 2>&1; then
+            echo "# Installing uv"
+            # Check if pixi exists
+            if command -v pixi >/dev/null 2>&1; then
+                # Use pixi global
+                echo "# Installing uv with pixi global"
+                echo "# You can update uv with 'pixi global update uv'"
+                pixi global install uv
+            else
+                # Install from https://astral.sh/
+                echo "# Installing from https://astral.sh/"
+                echo "# You can update uv with 'uv self update'"
+                curl -LsSf https://astral.sh/uv/install.sh | sh
+            fi
+
+            # Ensure ~/.local/bin is on the PATH for uv
+            if [[ ":${PATH}:" != *":${HOME}/.local/bin:"* ]]; then
+                export PATH="${HOME}/.local/bin:${PATH}"
+            fi
+            # Enable uv shell autocompletion
+            eval "$(uv generate-shell-completion bash)"
+        fi
     fi
-fi
 
-unset _venv_name
+    # Get latest pip and setuptools
+    if [ -z "${_no_update}" ]; then
+        # Use uv by default
+        if [ -z "${_no_uv}" ]; then
+            uv pip --quiet install --upgrade pip setuptools
+        else
+            # Hide not-real errors from CVMFS by sending to /dev/null
+            python -m pip --quiet --no-cache-dir install --upgrade pip setuptools &> /dev/null
+        fi
+    fi
 
-fi  # _return_break if statement end
+    return 0
+}
 
-unset _return_break
-unset _no_system_site_packages
-unset _no_update
-unset _no_uv
-unset _text_editor
+# Remove the functions from the shell (which may be an interactive shell that
+# sourced this file) while preserving the exit status of _cvmfs_venv_main.
+# A function may unset itself in bash; it still returns normally.
+_cvmfs_venv_cleanup () {
+    unset -f _cvmfs_venv_help _cvmfs_venv_main _cvmfs_venv_cleanup
+    return "${1}"
+}
+
+_cvmfs_venv_main "$@"
+_cvmfs_venv_cleanup $?
