@@ -36,6 +36,9 @@ jobs:
         pipx run zizmor --version
         pipx run zizmor .github/workflows
 
+    - name: Validate CITATION.cff
+      run: pipx run cffconvert --validate
+
   test:
     name: Tests (Python ${{ matrix.python-version }})
     runs-on: ubuntu-latest

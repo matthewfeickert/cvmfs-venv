@@ -25,14 +25,13 @@ Options:
                 The venv module '--system-site-packages' option is used by
                 default. While it is not recommended, this behavior can be
                 disabled through use of this flag.
- --no-update    After venv creation don't update pip and setuptools to the
-                latest releases. Use of this option is not recommended,
-                but is faster.
+ --no-update    Don't update pip and setuptools to the latest releases after
+                creating the environment. Not recommended, but faster.
  --no-uv        Don't install uv, and use pip instead of uv to update pip
                 and setuptools. By default, uv is installed if it is not
                 found on PATH.
 
-Note: cvmfs-venv extends the Python venv module and so requires Python 3.4+.
+Note: cvmfs-venv extends the Python venv module and requires Python 3.8+.
 
 Examples:
 
