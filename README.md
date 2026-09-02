@@ -38,7 +38,7 @@ Options:
  --no-uv        After venv creation don't install uv and use it to update pip,
                 and setuptools. By default, uv is installed.
 
-Note: cvmfs-venv extends the Python venv module and so requires Python 3.3+.
+Note: cvmfs-venv extends the Python venv module and so requires Python 3.4+.
 
 Examples:
 
@@ -172,16 +172,13 @@ Required-by: cabinetry, coffea, servicex, uproot_browser
 
 ## Dependencies
 
-`cvmfs-venv` has no dependencies beyond the ones it aims to extend: A Linux operating system that has CVMFS installed on it with a Python 3.3+ runtime with a functioning [`venv` module][venv docs].
+`cvmfs-venv` has no dependencies beyond the ones it aims to extend: A Linux operating system that has CVMFS installed on it with a Python 3.4+ runtime with a functioning [`venv` module][venv docs].
 
 A full listing of all programs used outside of Bash shell builtins are:
 * `cat`
-* `curl`
-* `ed` or `vi`
-* `find`
 * `readlink`
-* `sed`
-* Python 3.3+ with `pip`
+* Python 3.4+ with `pip` (the environment's own Python adds the hooks to its `bin/activate`)
+* `curl` and `sh`, or `pixi`, only to install `uv` (see `--no-uv`), which then updates `pip` and `setuptools`
 
 ## Why is this needed?
 

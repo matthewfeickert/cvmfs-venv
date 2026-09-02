@@ -24,9 +24,17 @@ trap 'rm -rf "${SANDBOX}"' EXIT
 # Make the requested interpreter the python3 that cvmfs-venv will use. A
 # wrapper that execs the interpreter (rather than a symlink) keeps
 # sys.executable pointing at the real installation, which venv needs in
-# order to record a usable home directory.
+# order to record a usable home directory. No case uses pip, so venv creation
+# skips ensurepip, which otherwise dominates the run time.
 mkdir -p "${SANDBOX}/bin"
-printf '#!/bin/sh\nexec "%s" "$@"\n' "${_python3}" > "${SANDBOX}/bin/python3"
+cat > "${SANDBOX}/bin/python3" <<EOF
+#!/bin/bash
+if [ "\${1:-}" = -m ] && [ "\${2:-}" = venv ]; then
+    shift 2
+    set -- -m venv --without-pip "\$@"
+fi
+exec "${_python3}" "\$@"
+EOF
 chmod +x "${SANDBOX}/bin/python3"
 export PATH="${SANDBOX}/bin:${PATH}"
 
@@ -162,10 +170,143 @@ run_case "sourcing works under set -e and set -u" '
     check [ -n "${VIRTUAL_ENV}" ]
 '
 
-run_case "a venv name containing a space gets all hooks" '
-    . "${CVMFS_VENV}" --no-uv --no-update "my venv" > /dev/null
+run_case "a venv name containing a space gets all hooks and a correct PYTHONPATH" '
+    "${CVMFS_VENV}" --no-uv --no-update "my venv" > /dev/null
     check [ $? -eq 0 ]
     check [ "$(grep -c "Added by https://github.com/matthewfeickert/cvmfs-venv" "my venv/bin/activate")" -eq 5 ]
+    export PYTHONPATH=/fake/lcg
+    . "my venv/bin/activate"
+    check [ "${VIRTUAL_ENV:-}" = "${PWD}/my venv" ]
+    _site_packages="$(python -c "import sysconfig; print(sysconfig.get_paths()[\"purelib\"])")"
+    check [ "${PYTHONPATH}" = "${_site_packages}:/fake/lcg" ]
+    export PATH="/added/bin:${PATH}"
+    deactivate
+    check [ "${PYTHONPATH}" = /fake/lcg ]
+    check [ "${PATH%%:*}" = /added/bin ]
+    case ":${PATH}:" in *":${PWD}/my venv/bin:"*) echo "venv bin still on PATH"; exit 1 ;; esac
+'
+
+run_case "a venv below a directory containing a space gets a correct PYTHONPATH" '
+    mkdir "dir with space" && cd "dir with space"
+    "${CVMFS_VENV}" --no-uv --no-update tv > /dev/null
+    export PYTHONPATH=/fake/lcg
+    . tv/bin/activate
+    check [ "${VIRTUAL_ENV:-}" = "${PWD}/tv" ]
+    # An empty PYTHONPATH element would put the working directory on sys.path.
+    case "${PYTHONPATH}" in :*|*::*|*:) echo "empty PYTHONPATH element: ${PYTHONPATH}"; exit 1 ;; esac
+    _site_packages="$(python -c "import sysconfig; print(sysconfig.get_paths()[\"purelib\"])")"
+    check [ "${PYTHONPATH}" = "${_site_packages}:/fake/lcg" ]
+    deactivate
+    check [ "${PYTHONPATH}" = /fake/lcg ]
+'
+
+run_case "activate bakes in the site-packages path and does no filesystem search" '
+    "${CVMFS_VENV}" --no-uv --no-update tv > /dev/null
+    _relative="$(tv/bin/python -c "import os, sys, sysconfig; print(os.path.relpath(sysconfig.get_paths()[\"purelib\"], sys.prefix))")"
+    check [ -d "tv/${_relative}" ]
+    check grep -qF "    _VIRTUAL_SITE_PACKAGES=\"\${VIRTUAL_ENV}/${_relative}\"" tv/bin/activate
+    if grep -E "_VIRTUAL_SITE_PACKAGES=.*(\\$\\(|\`)" tv/bin/activate; then echo "site-packages is computed at activation"; exit 1; fi
+    # Lines that cvmfs-venv added (those not in a stock activate) must be clean
+    python3 -m venv stock
+    if comm -13 <(sort stock/bin/activate) <(sort tv/bin/activate) | grep -nE "[[:space:]]+$"; then
+        echo "added lines have trailing whitespace"; exit 1
+    fi
+'
+
+run_case "no editor or search tool is needed to add the hooks" '
+    mkdir shims
+    for _tool in ed vi sed find mktemp; do
+        printf "#!/bin/sh\necho \"%s must not be used\" >&2\nexit 99\n" "${_tool}" > "shims/${_tool}"
+        chmod +x "shims/${_tool}"
+    done
+    export PATH="${PWD}/shims:${PATH}"
+    "${CVMFS_VENV}" --no-uv --no-update tv > /dev/null
+    check [ $? -eq 0 ]
+    check [ "$(grep -c "Added by https://github.com/matthewfeickert/cvmfs-venv" tv/bin/activate)" -eq 5 ]
+'
+
+run_case "start-up output from the interpreter does not corrupt the baked path" '
+    # Wrap python3 so that the venv it creates has a .pth file that prints,
+    # as site-packages on CVMFS may.
+    mkdir wrap
+    cat > wrap/python3 <<EOF
+#!/bin/bash
+"$(command -v python3)" "\$@"; _status=\$?
+if [ "\${1:-}" = -m ] && [ "\${2:-}" = venv ]; then
+    echo "import sys; sys.stdout.write(\"compat layer loaded\\n\")" > "\${!#}"/lib/python*/site-packages/zz_noisy.pth
+fi
+exit \${_status}
+EOF
+    chmod +x wrap/python3
+    export PATH="${PWD}/wrap:${PATH}"
+    "${CVMFS_VENV}" --no-uv --no-update tv > /dev/null
+    check [ $? -eq 0 ]
+    export PYTHONPATH=/fake/lcg
+    . tv/bin/activate
+    check [ "${VIRTUAL_ENV:-}" = "${PWD}/tv" ]
+    check [ -d "${PYTHONPATH%%:*}" ]
+    check [ "${PYTHONPATH}" = "$(python -c "import sysconfig; print(sysconfig.get_paths()[\"purelib\"])" | tail -n 1):/fake/lcg" ]
+'
+
+run_case "a venv path with glob characters is removed from PATH and PYTHONPATH on deactivate" '
+    "${CVMFS_VENV}" --no-uv --no-update "v[1]" > /dev/null
+    export PYTHONPATH=/fake/lcg
+    . "v[1]/bin/activate"
+    check [ "${VIRTUAL_ENV:-}" = "${PWD}/v[1]" ]
+    export PATH="/added/bin:${PATH}"
+    export PYTHONPATH="/added/lib:${PYTHONPATH}"
+    deactivate
+    check [ "${PATH%%:*}" = /added/bin ]
+    case ":${PATH}:" in *":${PWD}/v[1]/bin:"*) echo "venv bin still on PATH"; exit 1 ;; esac
+    check [ "${PYTHONPATH}" = "/added/lib:/fake/lcg" ]
+'
+
+run_case "clearing PYTHONPATH while active does not leak site-packages on deactivate" '
+    "${CVMFS_VENV}" --no-uv --no-update tv > /dev/null
+    # The generated activate, deactivate and rebase must all be set -u safe
+    set -eu
+    export PYTHONPATH=/fake/lcg
+    . tv/bin/activate
+    check [ "${VIRTUAL_ENV:-}" = "${PWD}/tv" ]
+    unset PYTHONPATH
+    deactivate
+    check [ "${PYTHONPATH:-}" = /fake/lcg ]
+    check [ -z "${_VIRTUAL_SITE_PACKAGES:-}" ]
+    check [ -z "${_OLD_VIRTUAL_PYTHONPATH:-}" ]
+    # Only the site-packages left on PYTHONPATH: deactivate empties it
+    . tv/bin/activate
+    export PYTHONPATH="${_VIRTUAL_SITE_PACKAGES}"
+    deactivate
+    check [ -z "${PYTHONPATH:-}" ]
+    check [ -z "${_VIRTUAL_SITE_PACKAGES:-}" ]
+'
+
+run_case "an unrecognised activate template fails loudly and leaves nothing behind" '
+    # Wrap python3 so that the venv it creates has its activate mutated with
+    # the sed expression in MUTATION (GNU sed -i; the suite is Linux-only).
+    mkdir wrap
+    cat > wrap/python3 <<EOF
+#!/bin/bash
+"$(command -v python3)" "\$@"; _status=\$?
+if [ "\${1:-}" = -m ] && [ "\${2:-}" = venv ]; then sed -i "\${MUTATION}" "\${!#}/bin/activate"; fi
+exit \${_status}
+EOF
+    chmod +x wrap/python3
+    export PATH="${PWD}/wrap:${PATH}"
+    _mutations=(
+        "s/^deactivate () {/deactivate() {/"      # anchor missing
+        "s/^    unset PYTHONHOME$/&\n    unset PYTHONHOME/"  # anchor duplicated
+        "s/^    unset PYTHONHOME$/&\n    : extra line/"      # block longer than expected
+    )
+    for MUTATION in "${_mutations[@]}"; do
+        export MUTATION
+        _output="$("${CVMFS_VENV}" --no-uv --no-update tv 2>&1)"
+        _status=$?
+        check [ "${_status}" -eq 1 ]
+        check grep -q "^ERROR: expected" <<< "${_output}"
+        check grep -q "^ERROR: Failed to add the cvmfs-venv hooks" <<< "${_output}"
+        check [ ! -e tv ]
+    done
 '
 
 run_case "a double dash ends option parsing" '
