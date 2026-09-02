@@ -7,11 +7,39 @@ on:
   pull_request:
   workflow_dispatch:
 
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
+
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+    - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09  # v5.1.0
+      with:
+        persist-credentials: false
+
+    - name: ShellCheck
+      run: |
+        shellcheck --version
+        shellcheck -x cvmfs-venv.sh examples/*.sh tests/*.sh
+
+    - name: zizmor
+      run: |
+        pipx run zizmor --version
+        pipx run zizmor .github/workflows
 
   test:
     name: Tests (Python ${{ matrix.python-version }})
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     strategy:
       fail-fast: false
       matrix:
@@ -30,16 +58,19 @@ jobs:
       run: tests/test_cvmfs_venv.sh "$(command -v python3)"
 
   container-test:
+    name: Container test (${{ matrix.venv-name }})
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     strategy:
+      fail-fast: false
       matrix:
         venv-name: ["example", "name-with-hyphens"]
-        setup-command: [". /release_setup.sh", "lsetup 'views LCG_105 x86_64-el9-gcc12-opt'"]
     container:
-      image: gitlab-registry.cern.ch/atlas/athena/analysisbase:25.2.9
+      image: gitlab-registry.cern.ch/atlas/athena/analysisbase:25.2.9@sha256:0b2a002cb7bae9c5e773d8d581e81a3f594fe5fcdd902c9a1ea2fc644b43ee07
       options: --user root
     env:
       HOME: /home/atlas
+      VENV_NAME: ${{ matrix.venv-name }}
     defaults:
       run:
         shell: bash
@@ -48,7 +79,9 @@ jobs:
         working-directory: /workdir
 
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09  # v5.1.0
+      with:
+        persist-credentials: false
 
     - name: Setup directories
       run: |
@@ -71,7 +104,7 @@ jobs:
       run: |
         mkdir -p ~/.local/bin
         # Need root permissions to set GITHUB_ENV
-        echo "PATH=$(readlink -f ~)/.local/bin:${PATH}" >> $GITHUB_ENV
+        echo "PATH=$(readlink -f ~)/.local/bin:${PATH}" >> "${GITHUB_ENV}"
 
     - name: Install cvmfs-venv locally
       run: |
@@ -80,17 +113,43 @@ jobs:
         echo "cvmfs-venv is: $(command -v cvmfs-venv)"
         . cvmfs-venv --help
 
+    - name: Run behavioural tests with the release Python
+      run: |
+        . /release_setup.sh
+        "${GITHUB_WORKSPACE}/tests/test_cvmfs_venv.sh" "$(command -v python3)"
+
+    - name: Errors return a non-zero status
+      run: |
+        if cvmfs-venv --bogus 2> /dev/null; then
+          echo "expected a non-zero status for an invalid option"
+          exit 1
+        fi
+        mkdir notavenv
+        if . cvmfs-venv --no-uv --no-update notavenv 2> /dev/null; then
+          echo "expected a non-zero status for an existing non-venv directory"
+          exit 1
+        fi
+        rm -rf notavenv
+
+    - name: A CVMFS setup command is skipped with a warning inside a container
+      run: |
+        # The lsetup branch needs CVMFS; in a container /release_setup.sh is used instead
+        output="$(. cvmfs-venv --no-uv --no-update --setup "lsetup 'views LCG_105 x86_64-el9-gcc12-opt'" warn-check 2>&1)"
+        echo "${output}"
+        grep -q "WARNING: /release_setup.sh exists" <<< "${output}"
+        rm -rf warn-check
+
     - name: Setup default venv using /release_setup.sh
       run: |
         . cvmfs-venv
         echo "# cat $(find . -type f -iname pyvenv.cfg)"
-        cat $(find . -type f -iname pyvenv.cfg)
+        cat "$(find . -type f -iname pyvenv.cfg)"
         echo "# Python runtime: $(command -v python)"
         python --version --version
         echo "PATH=${PATH}"
         echo "PYTHONPATH=${PYTHONPATH}"
-        echo "# cat $(find . -type f -iname pyvenv.cfg)"
-        cat $(find . -type f -iname pyvenv.cfg)
+        [ "$(command -v python)" = "${PWD}/venv/bin/python" ]
+        [ "$(grep -c 'Added by https://github.com/matthewfeickert/cvmfs-venv' venv/bin/activate)" -eq 5 ]
 
     - name: Remove default venv
       run: |
@@ -98,18 +157,20 @@ jobs:
 
     - name: Setup venv "${{ matrix.venv-name }}" using /release_setup.sh
       run: |
-        . cvmfs-venv --setup "${{ matrix.setup-command }}" ${{ matrix.venv-name }}
+        . cvmfs-venv --setup ". /release_setup.sh" "${VENV_NAME}"
         echo "# cat $(find . -type f -iname pyvenv.cfg)"
-        cat $(find . -type f -iname pyvenv.cfg)
+        cat "$(find . -type f -iname pyvenv.cfg)"
         echo "# Python runtime: $(command -v python)"
         python --version --version
         echo "PATH=${PATH}"
         echo "PYTHONPATH=${PYTHONPATH}"
+        [ "$(command -v python)" = "${PWD}/${VENV_NAME}/bin/python" ]
+        [ "${PYTHONPATH%%:*}" = "${VIRTUAL_ENV}/lib/$(python -c 'import sys; print(f"python{sys.version_info[0]}.{sys.version_info[1]}")')/site-packages" ]
 
     - name: List installed Python packages
       run: |
         . /release_setup.sh
-        . ${{ matrix.venv-name }}/bin/activate
+        . "${VENV_NAME}/bin/activate"
         echo "# python -m pip list"
         python -m pip list
         echo "# python -m pip list --local"
@@ -118,7 +179,7 @@ jobs:
     - name: Update NumPy and install Uproot
       run: |
         . /release_setup.sh
-        . ${{ matrix.venv-name }}/bin/activate
+        . "${VENV_NAME}/bin/activate"
         echo "# uv pip install --upgrade numpy uproot"
         uv pip install --upgrade numpy uproot
         echo "# python -m pip list"
@@ -127,23 +188,26 @@ jobs:
         python -m pip list --local
         echo "# uv pip list"
         uv pip list
+        python -c 'import uproot; print(uproot.__version__)'
 
     - name: Deactivate environment
       run: |
         . /release_setup.sh
-        . ${{ matrix.venv-name }}/bin/activate
+        . "${VENV_NAME}/bin/activate"
         echo "# deactivate"
         deactivate
         echo "# Python runtime: $(command -v python)"
         echo "PATH=${PATH}"
         echo "PYTHONPATH=${PYTHONPATH}"
+        [ "$(command -v python)" != "${PWD}/${VENV_NAME}/bin/python" ]
+        case ":${PYTHONPATH}:" in *"/${VENV_NAME}/"*) echo "venv still on PYTHONPATH"; exit 1 ;; esac
         echo "# python -m pip list"
         python -m pip list
 
     - name: Uninstall NumPy to demonstrate can
       run: |
         . /release_setup.sh
-        . ${{ matrix.venv-name }}/bin/activate
+        . "${VENV_NAME}/bin/activate"
         echo "# python -m pip uninstall -y numpy"
         python -m pip uninstall -y numpy
         echo "# python -m pip list"
@@ -153,13 +217,13 @@ jobs:
 
     - name: Remove venv "${{ matrix.venv-name }}"
       run: |
-        rm -rf ${{ matrix.venv-name }}
+        rm -rf "${VENV_NAME}"
 
     - name: Setup default venv with --no-system-site-packages option
       run: |
         . cvmfs-venv --no-system-site-packages
         echo "# cat $(find . -type f -iname pyvenv.cfg)"
-        cat $(find . -type f -iname pyvenv.cfg)
+        cat "$(find . -type f -iname pyvenv.cfg)"
         echo "# Python runtime: $(command -v python)"
         python --version --version
         echo "# python -m pip list"
@@ -172,11 +236,20 @@ jobs:
       run: |
         . cvmfs-venv --no-update
         echo "# cat $(find . -type f -iname pyvenv.cfg)"
-        cat $(find . -type f -iname pyvenv.cfg)
+        cat "$(find . -type f -iname pyvenv.cfg)"
         echo "# Python runtime: $(command -v python)"
         python --version --version
         echo "# python -m pip list"
         python -m pip list
+        echo "# python -m pip list --local"
+        python -m pip list --local
+        rm -rf venv
+
+    - name: Setup default venv with --no-uv option
+      run: |
+        . cvmfs-venv --no-uv
+        echo "# Python runtime: $(command -v python)"
+        python --version --version
         echo "# python -m pip list --local"
         python -m pip list --local
         rm -rf venv

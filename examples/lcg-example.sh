@@ -1,4 +1,5 @@
 #!/bin/bash
+# shellcheck disable=SC1091  # sourced files exist only on CVMFS or after creation
 
 # Install cvmfs-venv
 mkdir -p ~/.local/bin
