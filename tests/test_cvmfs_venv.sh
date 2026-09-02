@@ -262,9 +262,12 @@ run_case "a venv path with glob characters is removed from PATH and PYTHONPATH o
 '
 
 run_case "clearing PYTHONPATH while active does not leak site-packages on deactivate" '
+    "${CVMFS_VENV}" --no-uv --no-update tv > /dev/null
+    # The generated activate, deactivate and rebase must all be set -u safe
     set -eu
     export PYTHONPATH=/fake/lcg
-    . "${CVMFS_VENV}" --no-uv --no-update tv > /dev/null
+    . tv/bin/activate
+    check [ "${VIRTUAL_ENV:-}" = "${PWD}/tv" ]
     unset PYTHONPATH
     deactivate
     check [ "${PYTHONPATH:-}" = /fake/lcg ]
