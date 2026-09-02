@@ -2,9 +2,10 @@
 #
 # Behavioural tests for cvmfs-venv.sh.
 #
-# Every invocation of cvmfs-venv passes --no-uv --no-update, so the tests need
-# no network access and never install anything. Each case runs in a fresh
-# subshell and working directory; a case passes when its snippet exits 0.
+# Invocations pass --no-uv --no-update, or stub the commands the uv step would
+# run, so the tests need no network access and never install anything. Each
+# case runs in a fresh subshell and working directory; a case passes when its
+# snippet exits 0.
 #
 #     tests/test_cvmfs_venv.sh [python3 executable]
 #
@@ -37,6 +38,8 @@ exec "${_python3}" "\$@"
 EOF
 chmod +x "${SANDBOX}/bin/python3"
 export PATH="${SANDBOX}/bin:${PATH}"
+# The suite may be run from an activated environment; cases start without one.
+unset VIRTUAL_ENV _OLD_VIRTUAL_PATH _OLD_VIRTUAL_PYTHONPATH _VIRTUAL_SITE_PACKAGES PIP_REQUIRE_VIRTUALENV
 
 # check <command...>: run the command and exit the case with a message if it fails.
 check () {
@@ -93,8 +96,8 @@ run_case "invalid option returns 1 when sourced and the shell survives" '
 '
 
 run_case "missing CVMFS with an ATLAS setup command returns 1 when sourced and the shell survives" '
-    if [ -d /cvmfs/atlas.cern.ch ]; then
-        echo "skipped: /cvmfs/atlas.cern.ch is mounted"
+    if [ -d /cvmfs/atlas.cern.ch ] || [ -f /release_setup.sh ]; then
+        echo "skipped: /cvmfs/atlas.cern.ch is mounted or /release_setup.sh exists"
         exit 0
     fi
     . "${CVMFS_VENV}" --no-uv --no-update --setup "lsetup views" nocvmfs 2> /dev/null
@@ -105,10 +108,25 @@ run_case "missing CVMFS with an ATLAS setup command returns 1 when sourced and t
 '
 
 run_case "--setup without an argument returns 1 instead of looping" '
-    . "${CVMFS_VENV}" --setup 2> /dev/null
-    check [ $? -eq 1 ]
+    # A regression here loops forever, so the sourced call gets its own
+    # timeout; "returned-1" is only printed when the script returned rather
+    # than exited.
+    _output="$(timeout 10 bash -c ". \"${CVMFS_VENV}\" --setup 2> /dev/null; _status=\$?; [ \"\${_status}\" -eq 1 ] && echo returned-1")"
+    check grep -q "^returned-1$" <<< "${_output}"
     "${CVMFS_VENV}" -s 2> /dev/null
     check [ $? -eq 1 ]
+'
+
+run_case "an empty, repeated, or joined --setup is rejected" '
+    for _args in "--setup \"\"" "--setup true --setup true" "--setup=true" "-s=true"; do
+        eval "set -- ${_args}"
+        _output="$("${CVMFS_VENV}" --no-uv --no-update "$@" tv 2>&1)"
+        check [ $? -eq 1 ]
+        check grep -q "^ERROR: " <<< "${_output}"
+        check [ ! -e tv ]
+    done
+    _output="$("${CVMFS_VENV}" --no-uv --no-update --setup=true tv 2>&1)"
+    check grep -q "separate argument" <<< "${_output}"
 '
 
 run_case "the environment name may come before options" '
@@ -117,9 +135,37 @@ run_case "the environment name may come before options" '
 '
 
 run_case "a second positional argument is an error" '
-    "${CVMFS_VENV}" --no-uv --no-update tv extra 2> /dev/null
+    for _args in "tv extra" "-- tv extra" "tv -- other"; do
+        eval "set -- ${_args}"
+        _output="$("${CVMFS_VENV}" --no-uv --no-update "$@" 2>&1)"
+        check [ $? -eq 1 ]
+        check grep -q "^ERROR: Unexpected argument" <<< "${_output}"
+        check [ ! -e tv ]
+    done
+'
+
+run_case "an empty name is rejected" '
+    for _args in "\"\"" "\"\" second" "-- \"\""; do
+        eval "set -- ${_args}"
+        _output="$("${CVMFS_VENV}" --no-uv --no-update "$@" 2>&1)"
+        check [ $? -eq 1 ]
+        check grep -q "may not be empty" <<< "${_output}"
+    done
+    check [ ! -e venv ]
+    check [ ! -e second ]
+'
+
+run_case "a name may contain -- but may only start with - after --" '
+    "${CVMFS_VENV}" --no-uv --no-update my--venv > /dev/null
+    check [ $? -eq 0 ]
+    check [ -f my--venv/pyvenv.cfg ]
+    "${CVMFS_VENV}" --no-uv --no-update -venv 2> /dev/null
     check [ $? -eq 1 ]
-    check [ ! -e tv ]
+    check [ ! -e ./-venv ]
+    . "${CVMFS_VENV}" --no-uv --no-update -- -venv > /dev/null
+    check [ $? -eq 0 ]
+    check [ "${VIRTUAL_ENV:-}" = "${PWD}/-venv" ]
+    check [ "$(command -v python)" = "${PWD}/-venv/bin/python" ]
 '
 
 run_case "a setup command is run in the calling shell before creation" '
@@ -136,25 +182,106 @@ run_case "a failing setup command returns 1 and creates nothing" '
     check [ $? -eq 1 ]
     check [ ! -e tv ]
     check [ -z "${VIRTUAL_ENV:-}" ]
+    # The status is that of the last command in the string, as documented
+    "${CVMFS_VENV}" --no-uv --no-update --setup "true && false" tv 2> /dev/null
+    check [ $? -eq 1 ]
+    check [ ! -e tv ]
+    # A setup string starting with a dash is reported as a failed command
+    _output="$("${CVMFS_VENV}" --no-uv --no-update -s --no-uv tv 2>&1)"
+    check [ $? -eq 1 ]
+    check grep -q "^ERROR: Setup command failed: --no-uv" <<< "${_output}"
+'
+
+run_case "lsetup inside a file name does not make the setup command an ATLAS one" '
+    if [ -d /cvmfs/atlas.cern.ch ] || [ -f /release_setup.sh ]; then echo "skipped: CVMFS or /release_setup.sh present"; exit 0; fi
+    printf "export CVMFS_VENV_WRAPPER_RAN=yes\n" > my_lsetup_wrapper.sh
+    . "${CVMFS_VENV}" --no-uv --no-update --setup "source ./my_lsetup_wrapper.sh" tv > /dev/null
+    check [ $? -eq 0 ]
+    check [ "${CVMFS_VENV_WRAPPER_RAN:-}" = yes ]
+    check [ "${VIRTUAL_ENV:-}" = "${PWD}/tv" ]
 '
 
 run_case "a failed venv creation returns 1 and never reaches the uv step" '
+    if [ -f /release_setup.sh ]; then echo "skipped: /release_setup.sh puts a real python3 ahead of the stub"; exit 0; fi
     mkdir shims
-    printf "#!/bin/sh\necho uv-was-called > \"${PWD}/uv-called\"\nexit 0\n" > shims/uv
-    printf "#!/bin/sh\nexit 1\n" > shims/python3
+    printf "%s\n" "#!/bin/sh" "touch \"${PWD}/uv-called\"" "exit 0" > shims/uv
+    printf "%s\n" "#!/bin/sh" "exit 1" > shims/python3
     chmod +x shims/uv shims/python3
     export PATH="${PWD}/shims:${PATH}"
-    . "${CVMFS_VENV}" tv 2> /dev/null
+    _output="$(. "${CVMFS_VENV}" tv 2>&1)"
     check [ $? -eq 1 ]
+    check grep -q "^ERROR: Failed to create the virtual environment" <<< "${_output}"
     check [ ! -e uv-called ]
+    check [ ! -e tv ]
     check [ -z "${VIRTUAL_ENV:-}" ]
+    check [ -z "${PIP_REQUIRE_VIRTUALENV:-}" ]
 '
 
-run_case "an existing directory that is not a venv is refused" '
-    mkdir notavenv
-    . "${CVMFS_VENV}" --no-uv --no-update notavenv 2> /dev/null
+run_case "a partially created environment is removed after a failed creation" '
+    # Wrap python3 so that venv writes pyvenv.cfg and bin/python but then fails
+    mkdir wrap
+    cat > wrap/python3 <<EOF
+#!/bin/bash
+"$(command -v python3)" "\$@"; _status=\$?
+if [ "\${1:-}" = -m ] && [ "\${2:-}" = venv ]; then rm -f "\${!#}/bin/activate"; exit 1; fi
+exit \${_status}
+EOF
+    chmod +x wrap/python3
+    export PATH="${PWD}/wrap:${PATH}"
+    _output="$("${CVMFS_VENV}" --no-uv --no-update tv 2>&1)"
     check [ $? -eq 1 ]
+    check grep -q "Removing the partially created" <<< "${_output}"
+    check [ ! -e tv ]
+'
+
+run_case "python3 missing from PATH is reported" '
+    _output="$(bash -c "export PATH=/nonexistent; . \"${CVMFS_VENV}\" --no-uv --no-update tv" 2>&1)"
+    check [ $? -eq 1 ]
+    check grep -q "^ERROR: python3 not found on PATH" <<< "${_output}"
+'
+
+run_case "an existing directory or file that is not a venv is refused" '
+    mkdir notavenv
+    touch afile
+    for _name in notavenv afile; do
+        _output="$(. "${CVMFS_VENV}" --no-uv --no-update "${_name}" 2>&1)"
+        check [ $? -eq 1 ]
+        check grep -q "is not a Python virtual environment" <<< "${_output}"
+    done
+    . "${CVMFS_VENV}" --no-uv --no-update notavenv 2> /dev/null
     check [ -z "${VIRTUAL_ENV:-}" ]
+    # A refused run must not leave the pip guard behind in the shell
+    check [ -z "${PIP_REQUIRE_VIRTUALENV:-}" ]
+'
+
+run_case "an incomplete or unreadable environment is reported as such" '
+    # pyvenv.cfg without bin/activate, as a failed creation could leave behind
+    "${CVMFS_VENV}" --no-uv --no-update tv > /dev/null
+    rm tv/bin/activate
+    _output="$(. "${CVMFS_VENV}" --no-uv --no-update tv 2>&1)"
+    check [ $? -eq 1 ]
+    check grep -q "incomplete or unreadable" <<< "${_output}"
+    if [ "$(id -u)" -eq 0 ]; then echo "skipped unreadable check: running as root"; exit 0; fi
+    "${CVMFS_VENV}" --no-uv --no-update tv2 > /dev/null
+    chmod 000 tv2/bin/activate
+    _output="$(. "${CVMFS_VENV}" --no-uv --no-update tv2 2>&1)"
+    check [ $? -eq 1 ]
+    check grep -q "incomplete or unreadable" <<< "${_output}"
+'
+
+run_case "an activate that fails or does not activate is reported" '
+    "${CVMFS_VENV}" --no-uv --no-update tv > /dev/null
+    _marker="$(grep -m1 "Added by https://github.com/matthewfeickert/cvmfs-venv" tv/bin/activate)"
+    # Keeps the marker but never sets VIRTUAL_ENV
+    printf "%s\n" "${_marker}" > tv/bin/activate
+    _output="$(. "${CVMFS_VENV}" --no-uv --no-update tv 2>&1)"
+    check [ $? -eq 1 ]
+    check grep -q "^ERROR: Failed to activate" <<< "${_output}"
+    "${CVMFS_VENV}" --no-uv --no-update tv2 > /dev/null
+    echo false >> tv2/bin/activate
+    _output="$(. "${CVMFS_VENV}" --no-uv --no-update tv2 2>&1)"
+    check [ $? -eq 1 ]
+    check grep -q "^ERROR: Failed to activate" <<< "${_output}"
 '
 
 run_case "an existing venv without the cvmfs-venv hooks is refused" '
@@ -179,6 +306,7 @@ run_case "creating a venv injects the activate hooks" '
     check [ -f tv/pyvenv.cfg ]
     check [ "${VIRTUAL_ENV}" = "${PWD}/tv" ]
     check [ "$(command -v python)" = "${PWD}/tv/bin/python" ]
+    check [ "${PIP_REQUIRE_VIRTUALENV:-}" = true ]
     check bash -n tv/bin/activate
     check grep -q "^cvmfs-venv-rebase () {" tv/bin/activate
     check [ "$(grep -c "Added by https://github.com/matthewfeickert/cvmfs-venv" tv/bin/activate)" -eq 5 ]
@@ -214,6 +342,7 @@ run_case "deactivate keeps PATH and PYTHONPATH additions made while active" '
 '
 
 run_case "sourcing a venv creation leaves only the expected state behind" '
+    if [ -f /release_setup.sh ]; then echo "skipped: /release_setup.sh is sourced in a container"; exit 0; fi
     _before="$(compgen -v; compgen -A function)"
     . "${CVMFS_VENV}" --no-uv --no-update tv
     deactivate
@@ -224,8 +353,10 @@ run_case "sourcing a venv creation leaves only the expected state behind" '
     if [ -n "${_new}" ]; then echo "leaked: ${_new}"; exit 1; fi
 '
 
-run_case "sourcing works under set -e and set -u" '
-    set -eu
+run_case "a successful sourced run works under set -e and set -u" '
+    set -e
+    # A container setup script sourced by cvmfs-venv need not be set -u safe
+    [ -f /release_setup.sh ] || set -u
     . "${CVMFS_VENV}" --no-uv --no-update tv
     check [ -n "${VIRTUAL_ENV}" ]
 '
