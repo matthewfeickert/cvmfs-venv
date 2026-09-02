@@ -40,8 +40,9 @@ Options:
  --no-update    After venv creation don't update pip and setuptools to the
                 latest releases. Use of this option is not recommended,
                 but is faster.
- --no-uv        After venv creation don't install uv and use it to update pip,
-                and setuptools. By default, uv is installed.
+ --no-uv        Don't install uv, and use pip instead of uv to update pip
+                and setuptools. By default, uv is installed if it is not
+                found on PATH.
 
 Note: cvmfs-venv extends the Python venv module and so requires Python 3.4+.
 
